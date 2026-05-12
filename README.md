@@ -4,6 +4,8 @@ This repository provides the source code and demonstration data for the manuscri
 
 **A Physics-Guided Graph State-Space Model for Probabilistic Forecasting of Uranium Concentration Dynamics in In-Situ Leaching Wellfields**
 
+**Public repository:** [https://github.com/liqiangqian/PG-SSM-CAGEO](https://github.com/liqiangqian/PG-SSM-CAGEO)
+
 ## Overview
 
 PG-SSM is a physics-guided graph state-space style framework for **probabilistic** forecasting of uranium concentration dynamics in structured in-situ leaching (ISL) wellfields. The implementation integrates (i) a **flow-aware** five-spot graph prior, (ii) **dual-branch** temporal encoding (TCN + LSTM) with gated fusion, (iii) **physics-guided** regularization terms, and (iv) a **Gaussian** predictive head with calibrated interval metrics.
@@ -26,10 +28,8 @@ outputs/        Runtime artifacts only (see note below; not meant for initial co
 
 ## Installation
 
-Replace `https://github.com/liqiangqian/PG-SSM-CAGEO` below with your real repository URL before publishing.
-
 ```bash
-git clone https://github.com/<your-username>/PG-SSM-CAGEO.git
+git clone https://github.com/liqiangqian/PG-SSM-CAGEO.git
 cd PG-SSM-CAGEO
 python -m venv .venv
 # Linux/macOS:
@@ -82,4 +82,14 @@ This repository is released under the MIT License (see `LICENSE`).
 
 ## Citation
 
-If you use this code, please cite the associated *Computers & Geosciences* article once it is available, and reference this public repository URL in the **Computer Code Availability** section as required by the journal.
+If you use this code, please cite the associated *Computers & Geosciences* article once it is available.
+
+## Computer Code Availability (for the manuscript)
+
+Use the section title **Computer Code Availability** in the main text. Suggested wording:
+
+```text
+The source code used to implement the proposed PG-SSM framework is publicly available at: https://github.com/liqiangqian/PG-SSM-CAGEO. The repository contains preprocessing scripts, flow-aware graph construction routines, PG-SSM model implementation, training and evaluation scripts, configuration files, documentation, and a quick-test example.
+
+Because the original industrial uranium ISL monitoring records are subject to operational confidentiality restrictions, the raw field dataset cannot be publicly released. To support independent execution of the computational workflow, the repository provides a synthetic demonstration dataset with the same variable structure as the field records. The README file documents the software environment, installation procedure, repository structure, and commands required to run the quick test.
+```

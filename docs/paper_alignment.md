@@ -1,5 +1,7 @@
 # Alignment with the manuscript (PG-SSM)
 
+**Repository:** [https://github.com/liqiangqian/PG-SSM-CAGEO](https://github.com/liqiangqian/PG-SSM-CAGEO)
+
 This public repository implements the **same methodological components** described in *A Physics-Guided Graph State-Space Model for Probabilistic Forecasting of Uranium Concentration Dynamics in In-Situ Leaching Wellfields* (Computers & Geosciences submission):
 
 1. **Flow-aware topology prior**  

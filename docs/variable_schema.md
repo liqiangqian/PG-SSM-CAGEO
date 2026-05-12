@@ -1,5 +1,7 @@
 # Variable schema
 
+**Repository:** [https://github.com/liqiangqian/PG-SSM-CAGEO](https://github.com/liqiangqian/PG-SSM-CAGEO)
+
 | Variable | Description | Role |
 | --- | --- | --- |
 | `date` | Daily timestamp | Temporal index |
