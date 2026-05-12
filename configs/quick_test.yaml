@@ -1,0 +1,71 @@
+# Lightweight configuration for `examples/quick_test.py` (editor / CI smoke test).
+# Same data schema and forecasting setting as `demo.yaml`, but smaller model and
+# fewer training epochs so CPU runs finish in a short time.
+#
+# For manuscript-aligned capacity and duration, use `configs/demo.yaml`.
+
+seed: 2026
+device: auto
+
+data:
+  csv_path: data/synthetic_demo.csv
+  date_column: date
+  target_column: uranium_concentration
+  fast_columns:
+    - inj1_flow
+    - inj2_flow
+    - inj3_flow
+    - inj4_flow
+    - prod_flow
+  slow_columns:
+    - inj1_pH
+    - inj2_pH
+    - inj3_pH
+    - inj4_pH
+    - inj1_DO
+    - inj2_DO
+    - inj3_DO
+    - inj4_DO
+  input_window: 28
+  forecast_horizon: 7
+  train_ratio: 0.70
+  val_ratio: 0.15
+
+graph:
+  topology: fivespot
+  sigma_d: 50.0
+  alpha: 0.2
+  flow_aware: true
+  injector_relative_xy_m:
+    - [50.0, 0.0]
+    - [-50.0, 0.0]
+    - [0.0, 50.0]
+    - [0.0, -50.0]
+  center_xy_m: [0.0, 0.0]
+
+model:
+  hidden_dim: 64
+  tcn_channels: [32, 64]
+  lstm_layers: 1
+  dropout: 0.12
+  n_static_features: 2
+
+physics_loss:
+  delta_max: 0.20
+  lambda_mass: 0.01
+  lambda_mono: 0.01
+  lambda_smooth: 0.001
+
+train:
+  batch_size: 48
+  epochs: 36
+  lr: 0.001
+  weight_decay: 0.00001
+  grad_clip: 1.0
+  early_stopping_patience: 8
+  scheduler_t_max: 36
+
+paths:
+  checkpoint: outputs/pgssm_quick_test.pt
+  metrics_train_val: outputs/metrics_quick_train_val.json
+  metrics_test: outputs/metrics_quick_test.json
