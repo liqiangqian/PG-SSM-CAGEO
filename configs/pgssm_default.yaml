@@ -1,0 +1,31 @@
+data:
+  raw_path: data/synthetic/synthetic_five_spot.csv
+  units_path: data/synthetic/synthetic_units.csv
+  processed_dir: outputs/synthetic_quick_test/processed
+  wide_csv: outputs/synthetic_quick_test/processed/synthetic_wide.csv
+
+output:
+  dir: outputs/synthetic_quick_test
+
+model:
+  hidden_dim: 32
+  latent_dim: 32
+  use_graph: true
+  use_dual_branch: true
+  use_physical_regularization: true
+  use_spatial_features: true
+
+training:
+  epochs: 5
+  batch_size: 16
+  learning_rate: 0.001
+  seed: 42
+
+forecast:
+  horizon: 7
+  window_length: 28
+
+quick_test:
+  epochs: 1
+  batch_size: 4
+  max_samples: 96

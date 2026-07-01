@@ -1,0 +1,9 @@
+extends: configs/pgssm_default.yaml
+ablations:
+  - no_graph
+  - no_dual_branch
+  - no_physical_regularization
+  - no_spatial_features
+
+output:
+  dir: outputs/synthetic_quick_test/ablation

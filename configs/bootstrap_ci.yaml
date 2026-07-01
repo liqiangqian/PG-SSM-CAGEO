@@ -1,0 +1,8 @@
+extends: configs/pgssm_default.yaml
+bootstrap:
+  repeats: 1000
+  quick_test_repeats: 20
+  metrics: [RMSE, MAE, R2]
+
+output:
+  dir: outputs/synthetic_quick_test/bootstrap_ci

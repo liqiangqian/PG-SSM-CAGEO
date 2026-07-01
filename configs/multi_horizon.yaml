@@ -1,0 +1,5 @@
+extends: configs/pgssm_default.yaml
+horizons: [3, 7, 14]
+
+output:
+  dir: outputs/synthetic_quick_test/multi_horizon

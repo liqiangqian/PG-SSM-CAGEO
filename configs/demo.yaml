@@ -1,6 +1,6 @@
 # Demonstration configuration aligned with manuscript settings:
 # five-spot unit, 28-day input window, 7-day forecast horizon,
-# physics-guided regularization (delta_max, lambda_mass, lambda_mono),
+# soft physical-plausibility regularization (delta_max, lambda_mass, lambda_mono),
 # directional topology prior coefficient alpha.
 
 seed: 2026

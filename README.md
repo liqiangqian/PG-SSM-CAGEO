@@ -1,26 +1,43 @@
-# PG-SSM: Physics-Guided Graph State-Space Model
+# PG-SSM-CAGEO: Physically Motivated Probabilistic Graph State-Space Framework for Short-Term Uranium Concentration Forecasting
 
 This repository provides the source code and demonstration data for the manuscript:
 
-**A Physics-Guided Graph State-Space Model for Probabilistic Forecasting of Uranium Concentration Dynamics in In-Situ Leaching Wellfields**
+**A Physically Motivated Probabilistic Graph State-Space Framework for Short-Term Uranium Concentration Forecasting in Five-Spot In-Situ Leaching Wellfield Units**
 
 **Public repository:** [https://github.com/liqiangqian/PG-SSM-CAGEO](https://github.com/liqiangqian/PG-SSM-CAGEO)
 
 ## Overview
 
-PG-SSM is a physics-guided graph state-space style framework for **probabilistic** forecasting of uranium concentration dynamics in structured in-situ leaching (ISL) wellfields. The implementation integrates (i) a **flow-aware** five-spot graph prior, (ii) **dual-branch** temporal encoding (TCN + LSTM) with gated fusion, (iii) **physics-guided** regularization terms, and (iv) a **Gaussian** predictive head with calibrated interval metrics.
+PG-SSM is a physically motivated graph state-space workflow for **short-term probabilistic forecasting** from sparse five-spot in-situ leaching (ISL) monitoring records. The implementation integrates (i) a **flow-modulated** five-spot graph affinity prior, (ii) **dual-branch** temporal encoding (TCN + LSTM) with gated fusion, (iii) **soft physical-plausibility** regularization terms, and (iv) a **Gaussian** predictive head with interval metrics.
 
-See `docs/paper_alignment.md` for a concise mapping to the paper’s methods and what is intentionally out of scope on synthetic data.
+The repository is intended for code execution and workflow verification. It provides a short-term forecasting workflow, not a full process simulator, not a site-calibrated groundwater model, and not a site-universal uranium concentration predictor.
+
+See `docs/paper_alignment.md`, `docs/revision_experiments.md`, and `docs/reproducibility_note.md` for the mapping between this public workflow and the revised manuscript.
+
+## Repository scope
+
+This public repository contains demonstration-scale implementation files for:
+
+- preprocessing of synthetic five-spot monitoring records;
+- flow-modulated graph construction;
+- PG-SSM training;
+- deterministic evaluation;
+- probabilistic calibration diagnostics;
+- multi-horizon forecasting;
+- rolling-origin stress testing;
+- ablation / component-removal diagnostics;
+- bootstrap confidence-interval estimation;
+- synthetic demonstration datasets for workflow verification.
 
 ## Repository structure
 
 ```text
 configs/        YAML configuration (`demo.yaml` full demo; `quick_test.yaml` fast smoke test)
-data/           Synthetic demonstration data and data README
+data/           Synthetic demonstration data and data README files
 src/            Preprocessing, graph construction, model, train, evaluate, metrics
-examples/       Quick-test driver (uses `configs/quick_test.yaml` by default)
-scripts/        Utility scripts (synthetic data generation)
-docs/           Variable schema and paper-alignment notes
+examples/       Quick-test guide and command script
+scripts/        Synthetic workflow and revision-experiment entry points
+docs/           Data schema, user guide, reproducibility, and paper-alignment notes
 outputs/        Runtime artifacts only (see note below; not meant for initial commits)
 ```
 
@@ -39,17 +56,37 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Quick test
+## Quick start with synthetic data
+
+```bash
+python scripts/run_preprocessing.py --config configs/pgssm_default.yaml --quick_test
+python scripts/run_train_pgssm.py --config configs/pgssm_default.yaml --quick_test --epochs 1
+python scripts/run_evaluate.py --config configs/pgssm_default.yaml --quick_test
+```
+
+These commands use the synthetic dataset under `data/synthetic/` and write runtime files to `outputs/synthetic_quick_test/`.
+
+The legacy quick-test driver is also retained:
 
 ```bash
 python examples/quick_test.py
 ```
 
-This uses **`configs/quick_test.yaml`**: a smaller model, fewer epochs, a shorter synthetic series (via `PGSSM_QUICK_SYNTHETIC_N`), and capped CPU thread counts so a typical **CPU-only** environment finishes in a short time. It regenerates `data/synthetic_demo.csv`, runs training, then evaluation, and verifies the full pipeline.
+## Revision experiments
 
-**`configs/demo.yaml`** is the fuller demonstration configuration (closer capacity to the main `demo` experiment). It is intended for manual runs when you have more time or a GPU; it is **not** the default for `examples/quick_test.py`.
+The major-revision workflows are available through dedicated scripts and configs:
 
-Expected **test-set** outputs (values depend on the synthetic draw) include at least:
+```bash
+python scripts/run_multi_horizon.py --config configs/multi_horizon.yaml --quick_test
+python scripts/run_rolling_origin.py --config configs/rolling_origin.yaml --quick_test
+python scripts/run_calibration.py --config configs/calibration.yaml --quick_test
+python scripts/run_ablation.py --config configs/ablation.yaml --quick_test
+python scripts/run_bootstrap_ci.py --config configs/bootstrap_ci.yaml --quick_test
+```
+
+See `docs/revision_experiments.md` for the purpose, scope, and limitations of these workflows.
+
+Expected **test-set** outputs on the synthetic quick test include at least:
 
 ```text
 RMSE
@@ -58,7 +95,9 @@ R2
 PI90_coverage
 ```
 
-Quick-test artifacts (not for version control): `outputs/pgssm_quick_test.pt`, `outputs/metrics_quick_*.json`.
+Revision-experiment outputs are JSON or CSV files under `outputs/synthetic_quick_test/`. Generated checkpoints, processed arrays, and metrics files are runtime artifacts and are not intended for version control.
+
+The quick tests are deliberately small. They verify preprocessing, graph construction, training, probabilistic inference, calibration helpers, ablation switches, and bootstrap utilities on synthetic data; they do not reproduce the manuscript's field-data RMSE, R2, PI90, CRPS, rolling-origin, bootstrap, ablation, or additional-archive tables.
 
 ## Main workflow (manual)
 
@@ -70,7 +109,13 @@ python src/evaluate.py --config configs/demo.yaml
 
 ## Data availability note
 
-The original industrial uranium ISL monitoring records are subject to operational confidentiality restrictions and **cannot** be publicly released. This repository provides a **synthetic** demonstration dataset with the **same variable structure** as the field records. The synthetic dataset is **not** intended to reproduce the numerical values reported in the manuscript; it is provided to demonstrate preprocessing, graph construction, training, inference, and evaluation.
+The confidential industrial monitoring archive used in the manuscript cannot be publicly released due to confidentiality restrictions. This repository provides a **synthetic** demonstration dataset with a similar general variable structure for workflow verification and code execution. The synthetic dataset is not intended to reproduce the confidential site-specific numerical values or the exact performance metrics reported in the manuscript.
+
+The synthetic records use anonymized unit identifiers, anonymized well identifiers, and synthetic coordinates. They must not be interpreted as field data.
+
+## Code availability
+
+The source code is publicly available at [https://github.com/liqiangqian/PG-SSM-CAGEO](https://github.com/liqiangqian/PG-SSM-CAGEO) under the MIT License.
 
 ## Software requirements
 
@@ -82,14 +127,26 @@ This repository is released under the MIT License (see `LICENSE`).
 
 ## Citation
 
-If you use this code, please cite the associated *Computers & Geosciences* article once it is available.
+If you use this repository, please cite the associated manuscript after publication.
+
+## Optional: GitHub Release (recommended)
+
+A release is **not** required by the journal, but it gives editors a stable version pointer. On GitHub: **Releases → Draft a new release**, then use:
+
+- **Tag:** `v1.0.0-cageo-submission`
+- **Release title:** Initial public release for CAGEO submission
+- **Release notes:**
+
+```text
+This release contains the source code, synthetic demonstration dataset, configuration files, documentation, and quick-test example for the physically motivated probabilistic PG-SSM framework submitted to Computers & Geosciences.
+```
 
 ## Computer Code Availability (for the manuscript)
 
 Use the section title **Computer Code Availability** in the main text. Suggested wording:
 
 ```text
-The source code used to implement the proposed PG-SSM framework is publicly available at: https://github.com/liqiangqian/PG-SSM-CAGEO. The repository contains preprocessing scripts, flow-aware graph construction routines, PG-SSM model implementation, training and evaluation scripts, configuration files, documentation, and a quick-test example.
+The source code of PG-SSM is publicly available at https://github.com/liqiangqian/PG-SSM-CAGEO under the MIT License. The repository contains implementation files for preprocessing, flow-modulated graph construction, PG-SSM training, deterministic evaluation, probabilistic calibration, multi-horizon forecasting, rolling-origin stress testing, ablation analysis, and bootstrap confidence-interval estimation.
 
-Because the original industrial uranium ISL monitoring records are subject to operational confidentiality restrictions, the raw field dataset cannot be publicly released. To support independent execution of the computational workflow, the repository provides a synthetic demonstration dataset with the same variable structure as the field records. The README file documents the software environment, installation procedure, repository structure, and commands required to run the quick test.
+Because the original industrial monitoring archive is confidential, the repository provides a synthetic demonstration dataset with the same general variable structure for workflow verification and code execution. The synthetic dataset is not intended to reproduce the confidential site-specific numerical values or the exact performance metrics reported in the manuscript.
 ```

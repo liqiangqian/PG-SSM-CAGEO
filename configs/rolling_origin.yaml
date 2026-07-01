@@ -1,0 +1,7 @@
+extends: configs/pgssm_default.yaml
+rolling_origin:
+  origins: 3
+  min_train_fraction: 0.55
+
+output:
+  dir: outputs/synthetic_quick_test/rolling_origin

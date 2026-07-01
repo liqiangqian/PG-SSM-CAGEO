@@ -8,6 +8,9 @@ __pycache__/
 .DS_Store
 outputs/*
 !outputs/.gitkeep
+!outputs/synthetic_quick_test/
+outputs/synthetic_quick_test/*
+!outputs/synthetic_quick_test/.gitkeep
 *.pt
 *.pth
 .ipynb_checkpoints/

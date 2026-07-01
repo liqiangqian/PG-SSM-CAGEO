@@ -1,0 +1,6 @@
+extends: configs/pgssm_default.yaml
+calibration:
+  nominal_levels: [0.5, 0.7, 0.8, 0.9]
+
+output:
+  dir: outputs/synthetic_quick_test/calibration
