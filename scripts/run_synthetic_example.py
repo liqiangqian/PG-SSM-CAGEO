@@ -64,7 +64,8 @@ def main():
               "parameter_count": sum(p.numel() for p in model.parameters())}
     out = ROOT / "field_results" / "synthetic_results.json"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    with out.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
 
 

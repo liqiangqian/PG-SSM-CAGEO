@@ -29,27 +29,27 @@
   },
   "field_analysis/__pycache__/execute_r3_experiments.cpython-39.pyc": {
     "bytes": 17711,
-    "sha256": "2b3ac9f81c94b0e78caf276d1f26d2e9fa7e105d1790c8e2cf635b9877a7a0a8"
+    "sha256": "0e8791e504e0e6754dfd6742121e0f93bb0b58ba0439f75643d2d8545fc69d64"
   },
   "field_analysis/__pycache__/finalize_analysis_results.cpython-39.pyc": {
     "bytes": 8515,
-    "sha256": "b631867fb762413d9d566442ab1ebafd874dd3abced586e77f3043a689a8f809"
+    "sha256": "382420af8c5a106583592f4f5fdc1dd12edc348b2ce45702cd459bdc7b9626ab"
   },
   "field_analysis/__pycache__/generate_final_figures.cpython-39.pyc": {
     "bytes": 20335,
-    "sha256": "9df0f965fe796c2ab780cd38fb713a4618e0ce7c0d2a8987a88f202e9788c562"
+    "sha256": "aaa45f73f5a9ed4c7f3740704bd94e9e3c443344797f23091c08d0b2013d0c60"
   },
   "field_analysis/__pycache__/inference_parameter_sweep.cpython-39.pyc": {
     "bytes": 2536,
-    "sha256": "eab5ce9633604177b2af2ee5371247f47fc2a46e5e57c507da431b66cd3cb5a1"
+    "sha256": "b269c122dfe765f62a4e05715633b7d9c400c5081214b25c6940796d11b3eb68"
   },
   "field_analysis/__pycache__/matched_baselines_final.cpython-39.pyc": {
     "bytes": 7890,
-    "sha256": "c8594e903ad20dc5e8f5cbcf40631fc5c027b581d944643a61a6f7de736011ce"
+    "sha256": "c276f997731b94713623bce11ea574cb4105363b3ed900161310d690568f220a"
   },
   "field_analysis/__pycache__/rolling_origin_audit.cpython-39.pyc": {
     "bytes": 2818,
-    "sha256": "b7d92569021afd4e2af462af314cf095ce0cfff09388aa94a865a36b989605ba"
+    "sha256": "32f148485b13e15e8b86aa6d90546d2b56d48cd2e369d8808ba296c28668faed"
   },
   "field_analysis/execute_r3_experiments.py": {
     "bytes": 17505,
@@ -120,8 +120,8 @@
     "sha256": "c6d6dbd3e5d66a66c2626e797760df358a8dd27830d057256cdb29ea5f783f3e"
   },
   "field_results/synthetic_results.json": {
-    "bytes": 242,
-    "sha256": "0851423887120536af2cc285e8ee64e8e3bfe9008f895f89f8d322430d96f696"
+    "bytes": 243,
+    "sha256": "10b90ac2841ce637664cba9177f4a0ee6aded4707a4bd45d5820bd44dcbf14c7"
   },
   "LICENSE": {
     "bytes": 1068,
@@ -137,27 +137,31 @@
   },
   "scripts/__pycache__/generate_synthetic_data.cpython-39.pyc": {
     "bytes": 1403,
-    "sha256": "ac25d830c2650d8218c3d2e5e064d197506e26987401f254c568243ba27e1c0c"
+    "sha256": "17610aae44905b1f4048d444f73be5bf8c4e53652ccb957aa2d0886ed89674f4"
   },
   "scripts/__pycache__/run_synthetic_example.cpython-39.pyc": {
     "bytes": 3191,
-    "sha256": "e0ffec5e7c1b210b4657897e6e4c877b39e260f7354d6be7f12e8ed6738fb826"
+    "sha256": "b3607571b5911e54c43eaff04c541602450ac7fcf07255ad217bc08bf6babbb4"
   },
   "scripts/generate_synthetic_data.py": {
     "bytes": 1189,
     "sha256": "568193f959343bd785656e245b950cb193148e3805e97e4fa6500f0615f02e78"
   },
   "scripts/run_synthetic_example.py": {
-    "bytes": 2932,
-    "sha256": "7e1120e094483ae27f24cfe077b1ed3574bbe23356c312eef44270879d2cb495"
+    "bytes": 2989,
+    "sha256": "2a933dd314a6ab9eb5de9f1cf5e1e2ca6c75b41336779dbaca7a7dd610fa8b79"
   },
   "src/__init__.py": {
     "bytes": 60,
     "sha256": "b3f544341f547523714d6e48ad6a61906a39eca56b77b1831fb38412e19ee530"
   },
+  "src/__pycache__/__init__.cpython-39.pyc": {
+    "bytes": 171,
+    "sha256": "5ee0ffc7d1dc731f1f1230b4fe86cb60be88b42f28cc6f08de89d0f205cd3045"
+  },
   "src/__pycache__/pgssm_model.cpython-39.pyc": {
-    "bytes": 3303,
-    "sha256": "e08abd01615299bd8dcda5c158965cbc0039733bca3722ddf0d05ab93583e0d9"
+    "bytes": 3385,
+    "sha256": "39dd09401902ab4a6c627661b2092d1d3279230410c85c22ab5774ef7d2fa1fd"
   },
   "src/pgssm_model.py": {
     "bytes": 3513,
