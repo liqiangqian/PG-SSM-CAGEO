@@ -1,0 +1,3 @@
+comparison,metric,estimate,low,high,block_length_days,repetitions
+persistence_minus_full,RMSE_squared_difference,-0.10572239849726657,-0.19270520012019202,-0.01536564488453419,7,5000
+persistence_minus_full,MAE_difference,-0.15635309245488424,-0.2937977598366672,-0.010420227841155271,7,5000

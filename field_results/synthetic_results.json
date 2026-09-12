@@ -1,0 +1,10 @@
+{
+  "synthetic_only": true,
+  "train_windows": 120,
+  "validation_windows": 33,
+  "test_windows": 33,
+  "rmse_mg_l": 0.10862091928720474,
+  "mase": 3.2049125849651303,
+  "mean_incoming_weight": 0.18780629336833954,
+  "parameter_count": 9538
+}

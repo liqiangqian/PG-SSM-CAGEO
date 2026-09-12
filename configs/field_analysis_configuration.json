@@ -1,0 +1,69 @@
+{
+  "task": "single seven-day endpoint forecast",
+  "history_days": 28,
+  "horizon_days": 7,
+  "wells": 5,
+  "variables_per_well": 6,
+  "calendar_split_days": {
+    "train": 347,
+    "validation": 74,
+    "test": 75
+  },
+  "scored_test_endpoints": 73,
+  "unavailable_target_dates": [
+    "2024-10-12",
+    "2024-10-13"
+  ],
+  "seeds": [
+    11,
+    23,
+    47
+  ],
+  "optimizer": {
+    "name": "Adam",
+    "learning_rate": 0.002,
+    "weight_decay": 0.0001,
+    "gradient_clip": 2.0,
+    "maximum_epochs": 300,
+    "early_stopping_patience": 40
+  },
+  "graph": {
+    "distance_scale_m": 120.0,
+    "alpha": 0.6,
+    "beta": 0.25,
+    "unit_self_loop": true,
+    "receiving_node": 0,
+    "distances_m": [
+      0.0,
+      102.35,
+      78.0,
+      114.47,
+      300.0
+    ]
+  },
+  "loss_weights": {
+    "negative": 0.08,
+    "rate": 0.05,
+    "rising_stage": 0.03
+  },
+  "rate_threshold": "training-only 95th percentile of absolute seven-day endpoint change divided by seven",
+  "stage_threshold_mg_l": 0.1,
+  "bootstrap": {
+    "block_length_days": 7,
+    "resamples": 5000,
+    "seed": 20260912
+  },
+  "source_sha256": "85DEB11811D14391EDCAE771623C58111C68FD2950D807B9FAC85F08C6AE81C9",
+  "prespecified_cross_architecture_seed": 11,
+  "additional_neural_baseline_diagnostic_seeds": [
+    23,
+    47
+  ],
+  "verified_synthetic_environment": {
+    "python": "3.9.13",
+    "torch": "2.2.2",
+    "numpy": "1.26.4",
+    "pandas": "2.3.2",
+    "device": "CPU"
+  }
+}

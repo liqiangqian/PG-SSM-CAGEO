@@ -1,152 +1,76 @@
-# PG-SSM-CAGEO: Physically Motivated Probabilistic Graph State-Space Framework for Short-Term Uranium Concentration Forecasting
+# PG-SSM-CAGEO revision companion
 
-This repository provides the source code and demonstration data for the manuscript:
+This repository accompanies the manuscript:
 
-**A Physically Motivated Probabilistic Graph State-Space Framework for Short-Term Uranium Concentration Forecasting in Five-Spot In-Situ Leaching Wellfield Units**
+**When a Graph Forecast Does Not Surpass Persistence: A Provenance-Traceable Five-Spot Uranium In-Situ Leaching Case Study**
 
-**Public repository:** [https://github.com/liqiangqian/PG-SSM-CAGEO](https://github.com/liqiangqian/PG-SSM-CAGEO)
+It exposes the corrected receiving-row graph, the 9,538-parameter endpoint architecture, original-scale soft penalties, deterministic synthetic data, aggregate field results and the field-analysis workflow used in the revision.
 
-## Overview
+## Scientific scope
 
-PG-SSM is a physically motivated graph state-space workflow for **short-term probabilistic forecasting** from sparse five-spot in-situ leaching (ISL) monitoring records. The implementation integrates (i) a **flow-modulated** five-spot graph affinity prior, (ii) **dual-branch** temporal encoding (TCN + LSTM) with gated fusion, (iii) **soft physical-plausibility** regularization terms, and (iv) a **Gaussian** predictive head with interval metrics.
+The revised study reports a negative result. In the locked 73-endpoint test, PG-SSM did not outperform seven-day persistence and its 90% predictive interval was undercovered. The graph is a computational information-aggregation prior. It is not a hydraulic-flow solution, reactive-transport simulator or validated mechanistic model.
 
-The repository is intended for code execution and workflow verification. It provides a short-term forecasting workflow, not a full process simulator, not a site-calibrated groundwater model, and not a site-universal uranium concentration predictor.
-
-See `docs/paper_alignment.md`, `docs/revision_experiments.md`, and `docs/reproducibility_note.md` for the mapping between this public workflow and the revised manuscript.
-
-## Repository scope
-
-This public repository contains demonstration-scale implementation files for:
-
-- preprocessing of synthetic five-spot monitoring records;
-- flow-modulated graph construction;
-- PG-SSM training;
-- deterministic evaluation;
-- probabilistic calibration diagnostics;
-- multi-horizon forecasting;
-- rolling-origin stress testing;
-- ablation / component-removal diagnostics;
-- bootstrap confidence-interval estimation;
-- synthetic demonstration datasets for workflow verification.
+The industrial field rows and exact site coordinates cannot be redistributed. The public synthetic example verifies execution and dimensional consistency. Aggregate field outputs and source hashes support provenance inspection, but the confidential field result cannot be independently replayed without authorized access to the source data.
 
 ## Repository structure
 
 ```text
-configs/        YAML configuration (`demo.yaml` full demo; `quick_test.yaml` fast smoke test)
-data/           Synthetic demonstration data and data README files
-src/            Preprocessing, graph construction, model, train, evaluate, metrics
-examples/       Quick-test guide and command script
-scripts/        Synthetic workflow and revision-experiment entry points
-docs/           Data schema, user guide, reproducibility, and paper-alignment notes
-outputs/        Runtime artifacts only (see note below; not meant for initial commits)
+configs/          Locked field-analysis configuration without field rows
+data/             Deterministic synthetic five-well dataset
+docs/             User guide, variable schema and data-limit explanation
+field_analysis/   Portable field-analysis scripts; require authorized data
+field_results/    Aggregate field outputs and synthetic quick-test result
+scripts/          Synthetic-data generator and executable quick test
+src/              Corrected PG-SSM architecture and loss implementation
 ```
 
-**Initial public checkout:** keep `outputs/` empty except `.gitignore` / `.gitkeep`. Do not commit generated `.pt` checkpoints or metrics JSON from local runs. Editors and reviewers regenerate them with `python examples/quick_test.py`.
-
 ## Installation
+
+Python 3.9.13 was used for the verified synthetic run.
 
 ```bash
 git clone https://github.com/liqiangqian/PG-SSM-CAGEO.git
 cd PG-SSM-CAGEO
 python -m venv .venv
-# Linux/macOS:
-source .venv/bin/activate
-# Windows:
-# .venv\Scripts\activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Quick start with synthetic data
+## Quick test
 
 ```bash
-python scripts/run_preprocessing.py --config configs/pgssm_default.yaml --quick_test
-python scripts/run_train_pgssm.py --config configs/pgssm_default.yaml --quick_test --epochs 1
-python scripts/run_evaluate.py --config configs/pgssm_default.yaml --quick_test
+python scripts/generate_synthetic_data.py
+python scripts/run_synthetic_example.py
 ```
 
-These commands use the synthetic dataset under `data/synthetic/` and write runtime files to `outputs/synthetic_quick_test/`.
+The second command writes `field_results/synthetic_results.json`. A successful run reports 120/33/33 train/validation/test windows and 9,538 trainable parameters. Synthetic scores are not manuscript field scores.
 
-The legacy quick-test driver is also retained:
+## Field workflow for authorized data holders
+
+Place `five_wells_timeseries_clean.parquet` and `five_wells_info.csv` in a protected directory, then set:
 
 ```bash
-python examples/quick_test.py
+export PGSSM_FIELD_DATA_DIR=/protected/path/to/field_data
+export PGSSM_OUTPUT_DIR=/protected/path/to/output_root
 ```
 
-## Revision experiments
+On Windows PowerShell:
 
-The major-revision workflows are available through dedicated scripts and configs:
-
-```bash
-python scripts/run_multi_horizon.py --config configs/multi_horizon.yaml --quick_test
-python scripts/run_rolling_origin.py --config configs/rolling_origin.yaml --quick_test
-python scripts/run_calibration.py --config configs/calibration.yaml --quick_test
-python scripts/run_ablation.py --config configs/ablation.yaml --quick_test
-python scripts/run_bootstrap_ci.py --config configs/bootstrap_ci.yaml --quick_test
+```powershell
+$env:PGSSM_FIELD_DATA_DIR = "D:\protected\field_data"
+$env:PGSSM_OUTPUT_DIR = "D:\protected\field_results"
 ```
 
-See `docs/revision_experiments.md` for the purpose, scope, and limitations of these workflows.
+Run the scripts in the order documented in `field_analysis/README.md`. The expected source SHA-256 is stored in `configs/field_analysis_configuration.json` and `field_results/analysis_manifest_final.json`.
 
-Expected **test-set** outputs on the synthetic quick test include at least:
+## Reported field evidence
 
-```text
-RMSE
-MAE
-R2
-PI90_coverage
-```
-
-Revision-experiment outputs are JSON or CSV files under `outputs/synthetic_quick_test/`. Generated checkpoints, processed arrays, and metrics files are runtime artifacts and are not intended for version control.
-
-The quick tests are deliberately small. They verify preprocessing, graph construction, training, probabilistic inference, calibration helpers, ablation switches, and bootstrap utilities on synthetic data; they do not reproduce the manuscript's field-data RMSE, R2, PI90, CRPS, rolling-origin, bootstrap, ablation, or additional-archive tables.
-
-## Main workflow (manual)
-
-```bash
-python scripts/generate_synthetic_demo.py   # optional: set PGSSM_QUICK_SYNTHETIC_N=750 for longer series
-python src/train.py --config configs/demo.yaml
-python src/evaluate.py --config configs/demo.yaml
-```
-
-## Data availability note
-
-The confidential industrial monitoring archive used in the manuscript cannot be publicly released due to confidentiality restrictions. This repository provides a **synthetic** demonstration dataset with a similar general variable structure for workflow verification and code execution. The synthetic dataset is not intended to reproduce the confidential site-specific numerical values or the exact performance metrics reported in the manuscript.
-
-The synthetic records use anonymized unit identifiers, anonymized well identifiers, and synthetic coordinates. They must not be interpreted as field data.
-
-## Code availability
-
-The source code is publicly available at [https://github.com/liqiangqian/PG-SSM-CAGEO](https://github.com/liqiangqian/PG-SSM-CAGEO) under the MIT License.
-
-## Software requirements
-
-Python 3.10+ recommended. Core dependencies are listed in `requirements.txt` (NumPy, pandas, scikit-learn, PyTorch, PyYAML, Matplotlib).
+`field_results/` contains aggregate metrics, calibration, block-bootstrap, stage, rolling-origin, matched-baseline and coefficient-sensitivity outputs. Row-level field observations and predictions are excluded because the data-owner agreement does not permit public redistribution.
 
 ## License
 
-This repository is released under the MIT License (see `LICENSE`).
+MIT License. See `LICENSE`.
 
 ## Citation
 
-If you use this repository, please cite the associated manuscript after publication.
-
-## Optional: GitHub Release (recommended)
-
-A release is **not** required by the journal, but it gives editors a stable version pointer. On GitHub: **Releases → Draft a new release**, then use:
-
-- **Tag:** `v1.0.0-cageo-submission`
-- **Release title:** Initial public release for CAGEO submission
-- **Release notes:**
-
-```text
-This release contains the source code, synthetic demonstration dataset, configuration files, documentation, and quick-test example for the physically motivated probabilistic PG-SSM framework submitted to Computers & Geosciences.
-```
-
-## Computer Code Availability (for the manuscript)
-
-Use the section title **Computer Code Availability** in the main text. Suggested wording:
-
-```text
-The source code of PG-SSM is publicly available at https://github.com/liqiangqian/PG-SSM-CAGEO under the MIT License. The repository contains implementation files for preprocessing, flow-modulated graph construction, PG-SSM training, deterministic evaluation, probabilistic calibration, multi-horizon forecasting, rolling-origin stress testing, ablation analysis, and bootstrap confidence-interval estimation.
-
-Because the original industrial monitoring archive is confidential, the repository provides a synthetic demonstration dataset with the same general variable structure for workflow verification and code execution. The synthetic dataset is not intended to reproduce the confidential site-specific numerical values or the exact performance metrics reported in the manuscript.
-```
+Please cite the associated Computers & Geosciences manuscript when available.
