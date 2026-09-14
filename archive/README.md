@@ -1,8 +1,10 @@
-# Archived development artifacts
+# NOT USED IN CURRENT MANUSCRIPT
 
-This directory stores superseded revision outputs and internal development files. They are retained for provenance. They are excluded from the manuscript evidence chain.
+This directory is **not** part of the CAGEO-D-26-00782R1 evidence chain.
 
-Reviewers should use `field_results/` and the root `README.md`. Do not treat files in this directory as locked CAGEO-D-26-00782R1 evidence.
+The files below are superseded revision outputs or internal development artifacts. They are retained only for provenance. Reviewers should use the root `README.md` and `field_results/`.
+
+Status: **NOT USED IN CURRENT MANUSCRIPT**
 
 ## Contents
 
@@ -13,4 +15,4 @@ Reviewers should use `field_results/` and the root `README.md`. Do not treat fil
 | `legacy_workflow/` | Scripts that generated or plotted those development outputs |
 | `legacy_protocol/` | Previous public README that described a superseded scientific narrative |
 
-See `MATCHED_BASELINE_RECONCILIATION.md` for the baseline decision record.
+See `MATCHED_BASELINE_RECONCILIATION.md` for the CASE B baseline decision record.

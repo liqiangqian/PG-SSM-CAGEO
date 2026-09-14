@@ -1,5 +1,7 @@
 # Matched baseline reconciliation
 
+**NOT USED IN CURRENT MANUSCRIPT**
+
 Decision: **CASE B — development / legacy outputs**.
 
 Status: excluded from the manuscript evidence chain.

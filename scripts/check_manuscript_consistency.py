@@ -196,22 +196,38 @@ def check_rolling_bootstrap_sensitivity() -> None:
 
 
 def check_no_legacy_in_public_results() -> None:
-    public = (ROOT / "field_results").read_text if False else None
-    names = {p.name for p in (ROOT / "field_results").iterdir() if p.is_file()}
-    forbidden = {
-        "final_metrics_valid.csv",
-        "matched_baselines.csv",
-        "matched_baselines_summary.csv",
-        "final_paired_block_bootstrap.csv",
+    allowed = {
+        "README.md",
+        "analysis_manifest_final.json",
+        "manuscript_bootstrap.csv",
+        "manuscript_calibration.csv",
+        "manuscript_component_variants.csv",
+        "manuscript_primary_metrics.csv",
+        "manuscript_rolling_origin.csv",
+        "manuscript_sensitivity_summary.csv",
+        "manuscript_stage_coverage.csv",
+        "provenance.json",
+        "synthetic_results.json",
     }
-    leftover = names & forbidden
-    if leftover:
-        err(f"Legacy files remain in field_results/: {sorted(leftover)}")
-    text = "\n".join(p.read_text(encoding="utf-8") for p in (ROOT / "field_results").glob("*") if p.suffix in {".csv", ".json", ".md"})
+    names = {p.name for p in (ROOT / "field_results").iterdir() if p.is_file()}
+    unexpected = names - allowed
+    if unexpected:
+        err(f"Unexpected files in field_results/: {sorted(unexpected)}")
+    missing = allowed - names
+    if missing:
+        err(f"Required manuscript evidence missing from field_results/: {sorted(missing)}")
+    text = "\n".join(
+        p.read_text(encoding="utf-8")
+        for p in (ROOT / "field_results").glob("*")
+        if p.suffix in {".csv", ".json", ".md"}
+    )
     if "0.4156" in text or "0.415567" in text:
         err("Obsolete PG-SSM RMSE remains in public field_results.")
     if "expanding refit" in text.lower() or "expanding_origin" in text.lower():
         err("Public field_results still use expanding-refit terminology.")
+    archive_readme = (ROOT / "archive" / "README.md").read_text(encoding="utf-8")
+    if "NOT USED IN CURRENT MANUSCRIPT" not in archive_readme:
+        err("archive/README.md does not mark archived files as NOT USED IN CURRENT MANUSCRIPT.")
 
 
 def check_scripts_exist() -> None:
@@ -229,8 +245,9 @@ def check_scripts_exist() -> None:
     for path in required:
         if not path.exists():
             err(f"Required file missing: {path.relative_to(ROOT)}")
-    if (ROOT / "field_analysis" / "matched_baselines_final.py").exists():
-        err("matched_baselines_final.py remains in the official field_analysis path.")
+    for leftover in ("matched_baselines_final.py", "generate_final_figures.py"):
+        if (ROOT / "field_analysis" / leftover).exists():
+            err(f"{leftover} remains in the official field_analysis path.")
 
 
 def main() -> int:
