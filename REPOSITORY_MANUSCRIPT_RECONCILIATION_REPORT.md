@@ -125,7 +125,7 @@ https://github.com/liqiangqian/PG-SSM-CAGEO
 
 ## 11. Final commit SHA
 
-Recorded after the reconciliation commit in this working copy. See the git tag `v2.0-final-r2`.
+`25e3c7d6571ed172efcd2f871feb320a3237e2f4`
 
 ## 12. Consistency checker result
 

@@ -3,6 +3,7 @@
   "title": "A Physically Motivated Probabilistic Graph State-Space Framework for Seven-Day Uranium Concentration Forecasting in a Five-Spot In-Situ Leaching Wellfield",
   "repository": "https://github.com/liqiangqian/PG-SSM-CAGEO",
   "release_name": "v2.0-final-r2",
+  "repository_commit": "25e3c7d6571ed172efcd2f871feb320a3237e2f4",
   "generation_date": "2026-09-14",
   "configuration_file": "configs/field_analysis_configuration.json",
   "evidence_class": "aggregate manuscript results transcribed from the locked R2 paper",
