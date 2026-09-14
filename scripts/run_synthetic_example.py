@@ -1,4 +1,8 @@
-"""Run the public synthetic example end to end."""
+"""Run the public synthetic execution check end to end.
+
+This script verifies installation, tensor shapes, and the 9,538-parameter
+architecture. Synthetic scores are not manuscript field scores.
+"""
 import json
 import random
 import sys
@@ -56,7 +60,10 @@ def main():
     predicted = mu_z.numpy() * target_std + target_mean
     rmse = float(np.sqrt(np.mean((observed - predicted) ** 2)))
     mase_den = float(np.mean(np.abs(np.diff(y[:n_train]))))
-    result = {"synthetic_only": True, "train_windows": len(Xtr),
+    result = {"synthetic_only": True,
+              "purpose": "execution_schema_dimensional_check",
+              "not_field_performance": True,
+              "train_windows": len(Xtr),
               "validation_windows": len(Xv), "test_windows": len(Xte),
               "rmse_mg_l": rmse,
               "mase": float(np.mean(np.abs(observed - predicted)) / mase_den),

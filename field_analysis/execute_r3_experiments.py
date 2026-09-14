@@ -1,3 +1,9 @@
+"""Locked authorized field evaluation for CAGEO-D-26-00782R1.
+
+Sample membership is determined by target date. After validation selection the
+model is refit once on training+validation endpoint samples. Test parameters
+remain fixed. This script is not a test-period expanding update.
+"""
 import json, hashlib, math, os, random, sys
 from pathlib import Path
 import numpy as np
@@ -9,14 +15,27 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 ROOT = Path(__file__).resolve().parents[1]
 DATA = Path(os.environ.get('PGSSM_FIELD_DATA_DIR', ROOT / 'private_field_data'))
 RESULT_ROOT = Path(os.environ.get('PGSSM_OUTPUT_DIR', ROOT / 'private_field_results'))
-OUT = RESULT_ROOT / ('analysis_results_final' if '--expanding' in sys.argv else 'analysis_results_strict_final')
+# Deprecated flags are accepted only so older wrappers do not crash.
+# The locked protocol is always target-date assignment + one train+validation refit.
+if '--strict' in sys.argv:
+    print('WARNING: --strict is a superseded partition check and is not the manuscript protocol.', file=sys.stderr)
+if '--expanding' in sys.argv:
+    print('WARNING: --expanding is a deprecated alias. The locked protocol does not update parameters during test scoring.', file=sys.stderr)
+OUT = RESULT_ROOT / 'analysis_results_locked'
 OUT.mkdir(parents=True, exist_ok=True)
-SEEDS = [11, 23, 47]
-WELLS = ['11-3973','11-3874','11-3976','11-4075','11-3673']
-CENTER = '11-3973'
-INJECTORS = ['11-3874','11-3976','11-4075','11-3673']
+SEEDS = [11]
 VARS = ['U/mg/l','Q日抽','Q瞬时','Q累计','U/㎏','工作频率']
 L, H = 28, 7
+TRAIN_DAYS, VALID_DAYS = 347, 74
+
+
+def well_roles():
+    """Read protected well identifiers without publishing them in the repository."""
+    info = pd.read_csv(DATA / 'five_wells_info.csv')
+    wells = info['well_id'].astype(str).tolist()[:5]
+    if len(wells) < 5:
+        raise ValueError('five_wells_info.csv must list the extraction well first, then four injectors.')
+    return wells, wells[0], wells[1:]
 DEVICE = torch.device('cpu')
 torch.set_num_threads(2)
 
@@ -30,12 +49,13 @@ def seed_all(seed):
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
 
 def read_data():
+    wells, center, _injectors = well_roles()
     df = pd.read_parquet(DATA/'five_wells_timeseries_clean.parquet')
     df.index = pd.to_datetime(df.index)
-    arr = np.stack([df[w][VARS].to_numpy(float) for w in WELLS], axis=1) # T,N,F
-    y = df[CENTER]['U/mg/l'].to_numpy(float)
+    arr = np.stack([df[w][VARS].to_numpy(float) for w in wells], axis=1) # T,N,F
+    y = df[center]['U/mg/l'].to_numpy(float)
     info = pd.read_csv(DATA/'five_wells_info.csv').set_index('well_id')
-    xy = info.loc[WELLS,['X','Y']].to_numpy(float)
+    xy = info.loc[wells,['X','Y']].to_numpy(float)
     dist = np.sqrt(((xy-xy[0])**2).sum(1)); return df, arr, y, dist
 
 def windows(arr, y, dates, start, end, mean, std):
@@ -102,7 +122,7 @@ class PGSSM(nn.Module):
 def loss_fn(mu, lv, y, last, slope7_raw, target_mean, target_std, delta_rate, phys=True):
     nll=0.5*(lv+(y-mu)**2/torch.exp(lv)+math.log(2*math.pi)).mean()
     if not phys: return nll
-    # All plausibility terms are evaluated on the original concentration scale.
+    # Soft original-scale plausibility terms, including rising-stage guidance.
     mu_raw=mu*target_std+target_mean
     last_raw=last*target_std+target_mean
     delta_raw=mu_raw-last_raw
@@ -171,14 +191,15 @@ def peak_metrics(dates,y,mu):
 
 def run():
     df,arr,y,dist=read_data(); dates=df.index.to_numpy()
-    n=len(df); ntr=int(round(.70*n)); nv=int(round(.15*n)); bounds={'train':[0,ntr],'validation':[ntr,ntr+nv],'test':[ntr+nv,n]}
-    # training-only normalization; target stats equal center U stats from training rows
+    n=len(df); ntr=TRAIN_DAYS; nv=VALID_DAYS; bounds={'train':[0,ntr],'validation':[ntr,ntr+nv],'test':[ntr+nv,n]}
+    # training-only normalization; target stats equal extraction-well U stats from training rows
     mean=arr[:ntr].mean((0,)); std=arr[:ntr].std((0)); std=np.where(std<1e-6,1,std)
     X={}; Y={}; D={}; O={}
     for split,(a,b) in bounds.items():
-        if '--expanding' in sys.argv: X[split],Y[split],D[split],O[split]=windows_endpoint(arr,y,dates,a,b,mean,std)
-        else: X[split],Y[split],D[split],O[split]=windows(arr,y,dates,a,b,mean,std)
-    # baseline persistence and matched model controls
+        # Sample membership is determined by target date. Histories may cross an
+        # earlier calendar partition, but no observation after the origin is used.
+        X[split],Y[split],D[split],O[split]=windows_endpoint(arr,y,dates,a,b,mean,std)
+    # persistence and within-framework component/graph variants
     modes=['full','nophys','center','equal','distance','single']
     results=[]; pred_records=[]; histories=[]
     all_modes={m:[] for m in modes}
@@ -186,10 +207,8 @@ def run():
         for seed in SEEDS:
             mode2=mode; Xtr,Xv,Xte=X['train'],X['validation'],X['test']
             model,ep,vl,delta_rate=fit_model(Xtr,Y['train'],Xv,Y['validation'],mode2,seed,mean,std)
-            # After validation selection, refit on all labels available before the test period.
-            # The validation-selected epoch count is fixed; test targets remain untouched.
-            if '--expanding' in sys.argv:
-                model=fit_fixed(np.concatenate([Xtr,Xv]),np.concatenate([Y['train'],Y['validation']]),mode2,seed,ep,mean,std,delta_rate)
+            # ONE post-validation train+validation refit. Test parameters stay fixed.
+            model=fit_fixed(np.concatenate([Xtr,Xv]),np.concatenate([Y['train'],Y['validation']]),mode2,seed,ep,mean,std,delta_rate)
             with torch.no_grad(): mu_z,lv=model(torch.tensor(Xte)); mu_z=mu_z.numpy(); sig_z=np.exp(0.5*lv.numpy())
             ym=mean[0,0]; ys=std[0,0]; mu=ym+ys*mu_z; sig=ys*sig_z; yt=y[O['test']+H-1] if False else y[(bounds['test'][0]+L+H-1):bounds['test'][1]]
             # Y[test] is standardized endpoint; recover from original dates
@@ -233,14 +252,14 @@ def run():
         boot[-2000:]=[{'comparison':'full_minus_'+m,'metric':'RMSE2','estimate':float(d_rm.mean()),'low':float(np.quantile(arrs,.025)),'high':float(np.quantile(arrs,.975))}]
     pd.DataFrame(boot).drop_duplicates().to_csv(OUT/'paired_block_bootstrap.csv',index=False)
     # chronology and manifest
-    manifest={'source':str(DATA/'five_wells_timeseries_clean.parquet'),'source_sha256':sha256(DATA/'five_wells_timeseries_clean.parquet'),'coordinates_sha256':sha256(DATA/'five_wells_info.csv'),'center':CENTER,'injectors':INJECTORS,'variables':VARS,'date_start':str(df.index.min().date()),'date_end':str(df.index.max().date()),'n_days':n,'L':L,'H':H,'split_bounds':bounds,'split_dates':{k:[str(df.index[a].date()),str(df.index[b-1].date())] for k,(a,b) in bounds.items()},'window_counts':{k:int(len(Y[k])) for k in Y},'normalization':'training partition only','seed_list':SEEDS,'distance_m':dist.tolist(),'graph_formula':'Gaussian distance affinity times bounded standardized-flow modulation; incoming edges normalized jointly with a unit centre self-loop','loss_weights':{'lambda_negative':0.08,'lambda_rate':0.05,'lambda_stage':0.03},'stage_rule':'rising if seven-day historical concentration change >= 0.10 mg/L; stable between +/-0.10; falling <= -0.10','rate_threshold_rule':'training-only 95th percentile of absolute H-day endpoint change divided by H','mase_denominator_training_abs_diff':den,'evaluation':'expanding refit after validation selection' if '--expanding' in sys.argv else 'strict partition','note':'raw clean parquet; no smoothed or interpolated derivatives; endpoint target at t+H; receiving-row graph convention'}
+    manifest={'source':'five_wells_timeseries_clean.parquet (confidential; path withheld)','source_sha256':sha256(DATA/'five_wells_timeseries_clean.parquet'),'coordinates_sha256':sha256(DATA/'five_wells_info.csv'),'receiving_roles':['extraction','injector_1','injector_2','injector_3','injector_4'],'variables':VARS,'date_start':str(df.index.min().date()),'date_end':str(df.index.max().date()),'n_days':n,'L':L,'H':H,'split_bounds':bounds,'split_dates':{k:[str(df.index[a].date()),str(df.index[b-1].date())] for k,(a,b) in bounds.items()},'window_counts':{k:int(len(Y[k])) for k in Y},'normalization':'training partition only','sample_assignment':'target-date based','forecast_origin_rule':'target date minus 7 days','locked_seed':11,'distance_m':[float(x) for x in dist.tolist()],'graph_formula':'Gaussian distance affinity times bounded standardized-flow modulation; incoming edges normalized jointly with a unit centre self-loop','loss_weights':{'lambda_negative':0.08,'lambda_rate':0.05,'lambda_rising_stage':0.03},'stage_rule':'rising if seven-day historical concentration change >= 0.10 mg/L; stable between +/-0.10; falling <= -0.10','rate_threshold_rule':'training-only 95th percentile of absolute H-day endpoint change divided by H','mase_denominator_training_abs_diff':den,'evaluation':'one train+validation refit after selection; test parameters remain fixed','note':'raw clean parquet; no smoothed or interpolated derivatives; endpoint target at t+H; receiving-row graph convention'}
     (OUT/'analysis_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
     # simple diagnostic figure from seed 11
     try:
         import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
         p=pd.DataFrame(pred_records); p['Date']=pd.to_datetime(p.Date)
         fig,axs=plt.subplots(2,1,figsize=(10,6),sharex=True,gridspec_kw={'height_ratios':[2,1]})
-        f=p[p.model=='full']; axs[0].plot(f.Date,f.Observed,'k-',lw=1,label='Observed'); axs[0].plot(f.Date,f.Predicted,color='#1f77b4',label='PG-SSM'); axs[0].fill_between(f.Date,f.Lower90,f.Upper90,color='#1f77b4',alpha=.2,label='PI90'); axs[0].legend(frameon=False,ncol=3); axs[0].set_ylabel('U (mg L$^{-1}$)'); axs[0].set_title('Strict chronological test set (seed 11)')
+        f=p[p.model=='full']; axs[0].plot(f.Date,f.Observed,'k-',lw=1,label='Observed'); axs[0].plot(f.Date,f.Predicted,color='#1f77b4',label='PG-SSM'); axs[0].fill_between(f.Date,f.Lower90,f.Upper90,color='#1f77b4',alpha=.2,label='PI90'); axs[0].legend(frameon=False,ncol=3); axs[0].set_ylabel('U (mg L$^{-1}$)'); axs[0].set_title('Locked chronological test set (seed 11)')
         axs[1].plot(f.Date,f.Residual,'#555'); axs[1].axhline(0,color='k',lw=.7); axs[1].set_ylabel('Residual'); axs[1].set_xlabel('Target date'); fig.tight_layout(); fig.savefig(OUT/'Fig_R3_test_forecast.png',dpi=220); plt.close(fig)
     except Exception as e: (OUT/'plot_error.txt').write_text(str(e),encoding='utf-8')
     print(json.dumps({'out':str(OUT),'n_days':n,'window_counts':manifest['window_counts'],'summary':str(OUT/'metrics_summary.csv')},ensure_ascii=False))

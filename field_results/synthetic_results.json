@@ -1,5 +1,7 @@
 {
   "synthetic_only": true,
+  "purpose": "execution_schema_dimensional_check",
+  "not_field_performance": true,
   "train_windows": 120,
   "validation_windows": 33,
   "test_windows": 33,

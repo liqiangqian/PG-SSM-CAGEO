@@ -4,9 +4,10 @@ import numpy as np, pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 ROOT=Path(__file__).resolve().parents[1]
-STRICT='--strict' in sys.argv
+if '--strict' in sys.argv:
+    print('WARNING: --strict is a superseded partition check and is not the manuscript protocol.', file=sys.stderr)
 RESULT_ROOT=Path(os.environ.get('PGSSM_OUTPUT_DIR', ROOT/'private_field_results'))
-OUT=RESULT_ROOT/('analysis_results_strict_final' if STRICT else 'analysis_results_final')
+OUT=RESULT_ROOT/'analysis_results_locked'
 DATA=Path(os.environ.get('PGSSM_FIELD_DATA_DIR', ROOT/'private_field_data'))
 def sha(p):
  h=hashlib.sha256();
@@ -24,7 +25,7 @@ def main():
  p= pd.read_csv(OUT/'test_predictions_seed11.csv'); p.Date=pd.to_datetime(p.Date)
  # The raw workbook has no target observation on these two dates; remove them from every score.
  missing=pd.to_datetime(['2024-10-12','2024-10-13']); valid=p[~p.Date.isin(missing)].copy()
- raw=pd.read_parquet(DATA/'five_wells_timeseries_clean.parquet'); yall=raw['11-3973']['U/mg/l']
+ raw=pd.read_parquet(DATA/'five_wells_timeseries_clean.parquet'); center=pd.read_csv(DATA/'five_wells_info.csv')['well_id'].astype(str).iloc[0]; yall=raw[center]['U/mg/l']
  den=float(np.mean(np.abs(np.diff(yall.iloc[:347].to_numpy()))))
  rows=[]
  for m,g in valid.groupby('model'):
@@ -73,16 +74,15 @@ def main():
  diag={'n':len(res),'residual_mean':float(res.mean()),'residual_sd':float(res.std(ddof=1)),'residual_acf_lag1_7':acf,'standardized_mean':float((res/np.maximum(((fg.Upper90-fg.Lower90)/3.29).to_numpy(),1e-8)).mean()),'observed_peaks':len(pobs),'predicted_peaks':len(ppred),'matches':matches,'peak_rule':'local maximum, >=90th percentile, minimum separation 7 d, matching tolerance 7 d'}
  (OUT/'final_diagnostics.json').write_text(json.dumps(diag,ensure_ascii=False,indent=2),encoding='utf-8')
  # Final provenance manifest.
- man=json.loads((OUT/'analysis_manifest.json').read_text(encoding='utf-8')); man.update({'raw_target_observed_days':494,'raw_target_missing_dates':['2024-10-12','2024-10-13'],'valid_scored_target_days':int(len(valid[valid.model=='full'])),'mase_denominator_training_abs_diff':den,'final_scored_file':'final_metrics_valid.csv','bootstrap_file':'final_paired_block_bootstrap.csv','calibration_file':'final_calibration_valid.csv','stage_file':'final_stage_metrics.csv','diagnostics_file':'final_diagnostics.json','evaluation_partition':'strict_last_41_calendar_days' if STRICT else 'expanding_origin_73_endpoints'})
- for name in ['metrics_by_seed.csv','metrics_summary.csv','test_predictions_seed11.csv','inference_parameter_sweep.csv','inference_parameter_sweep_note.txt','matched_baselines.csv','matched_baselines_summary.csv','matched_baseline_predictions.csv','matched_baselines_protocol.json','rolling_origin_metrics.csv','rolling_origin_predictions.csv','final_metrics_valid.csv','final_paired_block_bootstrap.csv','final_calibration_valid.csv','final_stage_metrics.csv','final_diagnostics.json']:
+ man=json.loads((OUT/'analysis_manifest.json').read_text(encoding='utf-8')); man.update({'raw_target_observed_days':494,'raw_target_missing_dates':['2024-10-12','2024-10-13'],'valid_scored_target_days':int(len(valid[valid.model=='full'])),'mase_denominator_training_abs_diff':den,'final_scored_file':'final_metrics_valid.csv','bootstrap_file':'final_paired_block_bootstrap.csv','calibration_file':'final_calibration_valid.csv','stage_file':'final_stage_metrics.csv','diagnostics_file':'final_diagnostics.json','evaluation':'one train+validation refit after selection; test parameters remain fixed','evaluation_partition':'locked_73_endpoints'})
+ for name in ['metrics_by_seed.csv','metrics_summary.csv','test_predictions_seed11.csv','inference_parameter_sweep.csv','inference_parameter_sweep_note.txt','rolling_origin_metrics.csv','rolling_origin_predictions.csv','final_metrics_valid.csv','final_paired_block_bootstrap.csv','final_calibration_valid.csv','final_stage_metrics.csv','final_diagnostics.json']:
   if (OUT/name).exists():
    man.setdefault('output_sha256',{})[name]=sha(OUT/name)
  man['code_sha256']={
-  'execute_r3_experiments.py':sha(ROOT/'revision_audit'/'execute_r3_experiments.py'),
-  'inference_parameter_sweep.py':sha(ROOT/'revision_audit'/'inference_parameter_sweep.py'),
-  'matched_baselines_final.py':sha(ROOT/'revision_audit'/'matched_baselines_final.py'),
-  'rolling_origin_audit.py':sha(ROOT/'revision_audit'/'rolling_origin_audit.py'),
-  'finalize_analysis_results.py':sha(ROOT/'revision_audit'/'finalize_analysis_results.py')}
+  'execute_r3_experiments.py':sha(ROOT/'field_analysis'/'execute_r3_experiments.py'),
+  'inference_parameter_sweep.py':sha(ROOT/'field_analysis'/'inference_parameter_sweep.py'),
+  'rolling_origin_audit.py':sha(ROOT/'field_analysis'/'rolling_origin_audit.py'),
+  'finalize_analysis_results.py':sha(ROOT/'field_analysis'/'finalize_analysis_results.py')}
  (OUT/'analysis_manifest_final.json').write_text(json.dumps(man,ensure_ascii=False,indent=2),encoding='utf-8')
  print(json.dumps({'valid_n':len(g),'metrics':rows,'bootstrap':boot.to_dict('records'),'calibration':cal,'stage':st,'diagnostics':diag},ensure_ascii=False))
 if __name__=='__main__': main()

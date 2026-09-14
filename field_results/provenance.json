@@ -1,0 +1,47 @@
+{
+  "manuscript": "CAGEO-D-26-00782R1",
+  "title": "A Physically Motivated Probabilistic Graph State-Space Framework for Seven-Day Uranium Concentration Forecasting in a Five-Spot In-Situ Leaching Wellfield",
+  "repository": "https://github.com/liqiangqian/PG-SSM-CAGEO",
+  "release_name": "v2.0-final-r2",
+  "generation_date": "2026-09-14",
+  "configuration_file": "configs/field_analysis_configuration.json",
+  "evidence_class": "aggregate manuscript results transcribed from the locked R2 paper",
+  "not_row_level_recomputed": true,
+  "source_hashes": {
+    "timeseries_sha256": "85deb11811d14391edcae771623c58111c68fd2950d807b9fac85f08c6ae81c9",
+    "coordinates_sha256": "93f4bba60ee0a01ea0e2334946bbb6584a845c941f4350f384f3059655806246"
+  },
+  "script_mapping": {
+    "synthetic_generator": "scripts/generate_synthetic_data.py",
+    "synthetic_execution_check": "scripts/run_synthetic_example.py",
+    "manuscript_consistency_check": "scripts/check_manuscript_consistency.py",
+    "authorized_locked_field_run": "field_analysis/execute_r3_experiments.py",
+    "authorized_rolling_origin": "field_analysis/rolling_origin_audit.py",
+    "authorized_inference_sensitivity": "field_analysis/inference_parameter_sweep.py",
+    "authorized_finalize": "field_analysis/finalize_analysis_results.py"
+  },
+  "final_manuscript_evidence_files": [
+    "field_results/manuscript_primary_metrics.csv",
+    "field_results/manuscript_calibration.csv",
+    "field_results/manuscript_stage_coverage.csv",
+    "field_results/manuscript_rolling_origin.csv",
+    "field_results/manuscript_bootstrap.csv",
+    "field_results/manuscript_sensitivity_summary.csv",
+    "field_results/manuscript_component_variants.csv",
+    "field_results/analysis_manifest_final.json"
+  ],
+  "archived_legacy_areas": [
+    "archive/obsolete_field_results",
+    "archive/development_baselines",
+    "archive/legacy_workflow",
+    "archive/legacy_protocol"
+  ],
+  "protected_exclusions": [
+    "row-level industrial monitoring data",
+    "exact site coordinates",
+    "operational records",
+    "field-level row predictions",
+    "personal machine directories",
+    "well identifiers"
+  ]
+}

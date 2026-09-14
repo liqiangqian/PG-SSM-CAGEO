@@ -1,10 +1,17 @@
-"""Audited PG-SSM model components used in the revision."""
+"""Physically motivated PG-SSM components used in the locked manuscript.
+
+The graph is a computational information-aggregation prior. It is not a
+hydraulic-flow solution or reactive-transport simulator. The loss terms are
+soft endpoint-plausibility regularizers, including a rising-stage term.
+"""
 import math
 import torch
 from torch import nn
 
 
 class PGSSM(nn.Module):
+    """Receiving-row graph encoder with dual-timescale latent dynamics."""
+
     def __init__(self, distances_m, hidden=32, distance_scale_m=120.0,
                  alpha=0.6, beta=0.25):
         super().__init__()
@@ -23,9 +30,10 @@ class PGSSM(nn.Module):
         """Aggregate four injector messages at receiving node 0.
 
         x has shape (batch, history, 5 wells, 6 variables). Variable 1 is the
-        standardized flow proxy. A unit self-loop shares the denominator with
-        all incoming edges, preventing the common extraction-flow term from
-        cancelling algebraically.
+        standardized operational-flow proxy. A unit self-loop shares the
+        denominator with all incoming edges so the common extraction-flow term
+        does not cancel algebraically. The resulting weights are a domain-informed
+        information-aggregation prior, not a calibrated hydraulic connection.
         """
         center, injectors = x[:, :, 0, :], x[:, :, 1:, :]
         affinity = torch.exp(-(self.distances_m[1:] ** 2) /
@@ -57,6 +65,11 @@ def audited_loss(mean_z, log_variance, target_z, last_z, slope7_mg_l,
                  target_mean, target_std, rate_threshold_mg_l_day,
                  horizon=7, lambda_negative=0.08, lambda_rate=0.05,
                  lambda_stage=0.03):
+    """Gaussian NLL plus original-scale soft plausibility terms.
+
+    lambda_stage is the rising-stage plausibility weight. It is not a
+    symmetric three-stage physical law and does not embed transport physics.
+    """
     nll = 0.5 * (log_variance +
                  (target_z - mean_z) ** 2 / torch.exp(log_variance) +
                  math.log(2 * math.pi)).mean()

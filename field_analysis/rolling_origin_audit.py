@@ -1,3 +1,8 @@
+"""Rolling-origin audit under the locked target-date protocol.
+
+Each fold refits once on that fold's training+validation samples. The audit
+diagnoses temporal heterogeneity and is not external validation.
+"""
 from pathlib import Path
 import os
 
@@ -8,7 +13,7 @@ import torch
 import execute_r3_experiments as ex
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = Path(os.environ.get("PGSSM_OUTPUT_DIR", ROOT / "private_field_results")) / "analysis_results_final"
+OUT = Path(os.environ.get("PGSSM_OUTPUT_DIR", ROOT / "private_field_results")) / "analysis_results_locked"
 
 
 def main():

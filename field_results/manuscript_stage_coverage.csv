@@ -1,0 +1,4 @@
+stage,hits,n,coverage_percent,wilson_ci95_low_percent,wilson_ci95_high_percent,rule,assignment,evidence_class
+Rising,21,24,87.5,69.0,95.7,Delta C_t >= +0.10 mg/L,forecast-origin history only,aggregate_manuscript_result
+Stable,28,31,90.3,75.1,96.7,-0.10 < Delta C_t < +0.10 mg/L,forecast-origin history only,aggregate_manuscript_result
+Falling,16,18,88.9,67.2,96.9,Delta C_t <= -0.10 mg/L,forecast-origin history only,aggregate_manuscript_result

@@ -1,4 +1,8 @@
-"""Generate a deterministic, non-field five-well example."""
+"""Generate a deterministic synthetic five-well execution example.
+
+The array is for schema, dimension, and code-path checks only. It does not
+reproduce confidential field values or manuscript field metrics.
+"""
 from pathlib import Path
 import numpy as np
 

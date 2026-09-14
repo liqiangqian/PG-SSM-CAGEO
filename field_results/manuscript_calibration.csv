@@ -1,0 +1,5 @@
+nominal,hits,n,coverage,coverage_percent,wilson_ci95_low_percent,wilson_ci95_high_percent,evidence_class
+0.50,38,73,0.521,52.1,40.8,63.1,aggregate_manuscript_result
+0.80,58,73,0.795,79.5,68.8,87.1,aggregate_manuscript_result
+0.90,65,73,0.890,89.0,79.8,94.3,aggregate_manuscript_result
+0.95,70,73,0.959,95.9,88.6,98.6,aggregate_manuscript_result

@@ -200,7 +200,8 @@ def load_primary():
     p = p[(p.model == "full") & (~p.Date.isin(pd.to_datetime(["2024-10-12", "2024-10-13"])))].sort_values("Date")
     data_dir = Path(os.environ.get("PGSSM_FIELD_DATA_DIR", ROOT / "private_field_data"))
     raw = pd.read_parquet(data_dir / "five_wells_timeseries_clean.parquet")
-    p["Persistence"] = [float(raw["11-3973"]["U/mg/l"].loc[d - pd.Timedelta(days=7)]) for d in p.Date]
+    center = pd.read_csv(data_dir / "five_wells_info.csv")["well_id"].astype(str).iloc[0]
+    p["Persistence"] = [float(raw[center]["U/mg/l"].loc[d - pd.Timedelta(days=7)]) for d in p.Date]
     p["Sigma"] = (p.Upper90 - p.Lower90) / 3.29
     p["PIT"] = norm.cdf((p.Observed - p.Predicted) / p.Sigma)
     return p
@@ -369,7 +370,8 @@ def supplementary_figures():
 
     data_dir = Path(os.environ.get("PGSSM_FIELD_DATA_DIR", ROOT / "private_field_data"))
     raw = pd.read_parquet(data_dir / "five_wells_timeseries_clean.parquet")
-    y = raw["11-3973"]["U/mg/l"]
+    center = pd.read_csv(data_dir / "five_wells_info.csv")["well_id"].astype(str).iloc[0]
+    y = raw[center]["U/mg/l"]
     stage = []
     for d in p.Date:
         hist = y.loc[:d - pd.Timedelta(days=7)].tail(7)
