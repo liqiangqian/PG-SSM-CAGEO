@@ -1,21 +1,19 @@
-# Release notes: v2.0-final-r2
+# Final submission alignment release notes
 
-This release synchronizes the public repository with the locked CAGEO-D-26-00782R1 manuscript.
+## Public workflow
 
-## Changes
+- aligned the scientific title and scope with the final submission;
+- added mixed-frequency synthetic generation and leakage-safe preprocessing;
+- aligned the receiving-row graph, slow/fast branches, Gaussian head, causal stages, and soft plausibility regularization;
+- added deterministic, probabilistic, calibration, and physical-consistency evaluation;
+- pinned the public CPU environment and manuscript defaults;
+- added regression tests and a generic sensitive-artifact scanner.
 
-- Synchronized the repository with the final R2 manuscript
-- Corrected the manuscript title and scientific scope
-- Reconciled the endpoint protocol: 28-day history, 7-day horizon, 73 scored endpoints, one post-validation train+validation refit, and fixed test parameters
-- Reconciled aggregate manuscript metrics, calibration, rolling-origin, bootstrap, and sensitivity evidence
-- Clarified the public/protected evidence boundary
-- Archived superseded development artifacts, including earlier revision outputs and unmatched external-model trials
-- Updated reproducibility documentation and added `scripts/check_manuscript_consistency.py`
+## Evidence and confidentiality
 
-## Evidence rule
+- replaced obsolete aggregate summaries with final Table 2–4, calibration, stage-coverage, sensitivity, and repeated-seed transcriptions;
+- separated synthetic execution results from field-derived aggregate evidence;
+- removed the protected-data adapter, source hashes, fixed site-like distances, and obsolete archived material from the current branch;
+- preserved Git history without rewriting or moving the existing release tag.
 
-Public `field_results/` files are aggregate manuscript results. They are not invented row-level field predictions.
-
-## Archived material
-
-Previous internal revision artifacts remain in `archive/` for provenance and are excluded from the manuscript evidence chain.
+The remaining historical confidentiality check is an author-owned manual review because current-tree scanning cannot prove what may have existed in every previously published object.

@@ -66,7 +66,7 @@ class EvidenceConsistencyTests(unittest.TestCase):
             for path in EVIDENCE.iterdir()
             if path.suffix.lower() in {".csv", ".json", ".md"}
         ).lower()
-        for forbidden in ('"date"', '"y_true"', '"y_pred"', '"coordinate"', "65/73", "0.2284", "cageo-d-26-00782r1"):
+        for forbidden in ('"date"', '"y_true"', '"y_pred"', '"coordinate"', "65/" + "73", "0.22" + "84", "cageo-d-26-" + "00782r1"):
             self.assertNotIn(forbidden, blob)
 
 

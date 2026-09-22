@@ -1,14 +1,18 @@
-# Variable schema
+# Synthetic variable schema
 
-Each daily well record contains six variables in this order:
+`data/synthetic_demo.csv` is a long-format synthetic table with five rows per calendar day.
 
-| Index | Field label | Role |
-|---:|---|---|
-| 0 | `U/mg/l` | Uranium concentration; extraction-well target |
-| 1 | `Q日抽` | Daily flow feature used as an operational proxy |
-| 2 | `Q瞬时` | Instantaneous flow feature |
-| 3 | `Q累计` | Cumulative flow feature |
-| 4 | `U/㎏` | Uranium mass feature |
-| 5 | `工作频率` | Operating-frequency feature |
+| Field | Meaning |
+|---|---|
+| `day` | Zero-based synthetic daily calendar index |
+| `well_role` | Generic central extraction or injector role |
+| `injection_flow` | Synthetic daily injection flow; zero for the central role |
+| `extraction_flow` | Synthetic daily extraction flow; zero for injector roles |
+| `ph` | Bounded synthetic pH process |
+| `dissolved_oxygen` | Bounded synthetic dissolved-oxygen process |
+| `uranium_assay` | Mixed-frequency synthetic assay; blank when not observed |
+| `synthetic_record` | Explicit marker that the row is synthetic |
 
-The public synthetic dataset preserves this tensor layout. It contains no field measurements, no site coordinates, and no well identifiers. Synthetic values are used only for execution, schema, and dimensional checks.
+Preprocessing derives `assay_observed`, `uranium_locf`, and `days_since_assay`. These derived fields are intentionally not pre-baked into the CSV so the causal transformation remains testable.
+
+The table contains no actual identifiers, coordinates, site labels, or copied field rows.

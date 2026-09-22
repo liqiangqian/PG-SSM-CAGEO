@@ -1,131 +1,120 @@
-# A Physically Motivated Probabilistic Graph State-Space Framework for Seven-Day Uranium Concentration Forecasting in a Five-Spot In-Situ Leaching Wellfield
+# PG-SSM
 
-This repository accompanies the Computers & Geosciences manuscript:
+Public companion repository for:
 
-**A Physically Motivated Probabilistic Graph State-Space Framework for Seven-Day Uranium Concentration Forecasting in a Five-Spot In-Situ Leaching Wellfield**
+**A Physically Motivated Probabilistic Graph State-Space Framework for Short-Term Uranium Concentration Forecasting in Five-Spot In-Situ Leaching Wellfield Units**
 
-Manuscript number: `CAGEO-D-26-00782R1`.
+## Overview
 
-The manuscript develops and evaluates PG-SSM as a methodological forecasting framework. PG-SSM is a physically motivated probabilistic graph state-space framework for seven-day uranium-concentration forecasting in a five-spot ISL wellfield.
+PG-SSM is a physically motivated probabilistic forecasting framework combining a topology-informed computational affinity prior, flow-modulated graph affinity, dual-timescale latent dynamics, soft plausibility regularization, leakage-safe preprocessing, and a Gaussian probabilistic output.
 
 ## Scientific scope
 
-PG-SSM uses:
+The receiving-row graph aggregates information from four injector roles toward one central extraction role. Its `alpha` and `beta` settings are computational modulation weights. The graph is not a calibrated hydraulic connectivity map, and PG-SSM is not a governing-equation transport, hydraulic-flow, or reactive-transport solver.
 
-1. a receiving-row five-spot graph
-2. operation-conditioned multi-well information aggregation
-3. dual-timescale latent dynamics
-4. physically motivated soft plausibility regularization
-5. a probabilistic seven-day endpoint output
-
-The graph is a computational information-aggregation prior. It is not a hydraulic-flow solution, a reactive-transport simulator, or a validated mechanistic connectivity map. The soft penalties provide rising-stage and endpoint plausibility guidance; they are not conservation laws or a symmetric three-stage physical law.
-
-Seven-day persistence is the primary matched operational no-change point-forecast control. It is not the research subject of the manuscript.
-
-## Locked field evidence
-
-The public files record the manuscript-locked aggregate results for 73 scored seven-day endpoints.
-
-| Model | RMSE (mg/L) | MAE (mg/L) | R² | MASE | PI90 |
-|---|---:|---:|---:|---:|---|
-| PG-SSM | 0.2284 | 0.1712 | 0.2275 | 0.5093 | 89.0% (65/73) |
-| Persistence | 0.2588 | 0.1960 | −0.1622 | 0.5831 | point-forecast control only |
-
-Additional locked PG-SSM scores: CRPS 0.1732, NLL 0.4381, mean PI90 width 1.1824, Winkler90 1.4237.
-
-Persistence is reported only as a point-forecast control. Persistence CRPS, NLL, PI90, interval width, and Winkler scores are not official manuscript evidence.
-
-The rolling-origin audit shows temporal heterogeneity rather than uniform superiority: PG-SSM RMSE 0.2412 / 0.2826 / 0.1694 versus persistence 0.4411 / 0.2077 / 0.2892 in folds 1–3.
-
-## Reproducibility boundary
-
-**Public**
-
-- code
-- configuration
-- synthetic data
-- aggregate manuscript evidence
-- workflow documentation
-
-**Protected**
-
-- row-level industrial monitoring data
-- exact site coordinates
-- operational records
-- field-level row predictions
-
-The public repository supports code inspection, execution, dimensional checks, and verification of the reported aggregate evidence chain. Reproduction of the confidential field analysis requires authorized access to the protected industrial inputs.
+The latent state is a forecasting representation. The public implementation does not explicitly parameterize site-specific permeability, porosity, dispersion, hydraulic gradients, mineral composition, or reaction-rate constants.
 
 ## Repository structure
 
 ```text
-configs/          Locked field-analysis configuration
-data/             Deterministic synthetic five-well dataset
-docs/             User guide, variable schema, and data-boundary notes
-field_analysis/   Authorized field-analysis scripts; require protected data
-field_results/    Aggregate manuscript evidence and synthetic execution check
-scripts/          Synthetic generator, quick test, and consistency checker
-src/              PG-SSM architecture and loss implementation
-archive/          Superseded development artifacts excluded from the evidence chain
+configs/        Manuscript-aligned public demonstration configuration
+data/           Independently generated synthetic mixed-frequency records
+docs/           User guide, variable schema, alignment map, and data boundary
+field_results/  Aggregate manuscript transcriptions plus synthetic run summary
+scripts/        Generator, CPU demo, consistency checker, and safety scanner
+src/            Preprocessing, stage logic, model, and evaluation modules
+tests/          Causality, scoring, configuration, evidence, and safety tests
 ```
-
-Legacy development outputs, including earlier revision metrics and unmatched external-model trials, are excluded from the manuscript evidence chain.
 
 ## Installation
 
-Python 3.9.13 was used for the verified synthetic run.
+The pinned public environment is Python 3.9.13, PyTorch 2.2.2, NumPy 1.26.4, pandas 2.3.2, scikit-learn 1.6.1, SciPy 1.13.1, PyArrow 21.0.0, and Matplotlib 3.8.4. The verified public workflow executes on CPU; CUDA is not required.
+
+Linux/macOS:
 
 ```bash
-git clone https://github.com/liqiangqian/PG-SSM-CAGEO.git
-cd PG-SSM-CAGEO
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Public commands
-
-```bash
-python scripts/generate_synthetic_data.py
-python scripts/run_synthetic_example.py
-python scripts/check_manuscript_consistency.py
-```
-
-The synthetic example writes `field_results/synthetic_results.json`. A successful run reports 120/33/33 train/validation/test windows and 9,538 trainable parameters. Synthetic scores are an execution and dimensional check only. They are not field-performance scores and do not reproduce manuscript RMSE.
-
-The consistency checker verifies that README, configuration, manifest, and aggregate evidence files remain aligned with the locked manuscript record.
-
-## Authorized field workflow
-
-Place the protected daily record and well-role file in a directory that is not part of this public repository, then set:
-
-```bash
-export PGSSM_FIELD_DATA_DIR=/protected/path/to/field_data
-export PGSSM_OUTPUT_DIR=/protected/path/to/output_root
-```
-
-On Windows PowerShell:
+Windows PowerShell:
 
 ```powershell
-$env:PGSSM_FIELD_DATA_DIR = "D:\protected\field_data"
-$env:PGSSM_OUTPUT_DIR = "D:\protected\field_results"
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 ```
 
-Then run the locked protocol documented in `field_analysis/README.md`:
+## Quick start
+
+From the repository root:
 
 ```bash
-python field_analysis/execute_r3_experiments.py
-python field_analysis/rolling_origin_audit.py
-python field_analysis/inference_parameter_sweep.py
-python field_analysis/finalize_analysis_results.py
+python scripts/generate_synthetic_demo.py
+python scripts/run_demo.py --config configs/manuscript_demo.json --epochs 2
+python scripts/check_manuscript_consistency.py
+python scripts/scan_sensitive_artifacts.py
+python -m unittest discover -s tests -v
 ```
 
-Expected source SHA-256 values are stored in `configs/field_analysis_configuration.json` and `field_results/analysis_manifest_final.json`. Authorized outputs must remain in the protected output directory. They must not be copied into the public `field_results/` tree.
+The demo writes `field_results/synthetic_results.json`. Its values are demonstration outputs for code execution and workflow verification only.
+
+## Synthetic demonstration data
+
+`data/synthetic_demo.csv` is generated forward in time from generic smooth processes, step changes, lagged operational forcing, and heteroscedastic noise. It contains a daily calendar index, daily operational variables, mixed-frequency assays, and an explicit synthetic marker.
+
+The synthetic data are intended for code execution, schema checks, dimensional checks, causal preprocessing verification, and workflow verification. They are not intended to reproduce site-specific numerical values, confidential trajectories, industrial operating records, or exact field-derived manuscript metrics.
+
+## Leakage-safe preprocessing
+
+The public pipeline retains an assay-observation mask and days-since-assay feature. Historical assay inputs use causal last-observation-carried-forward only: no backward filling, future-target interpolation, or future assay is permitted. Normalization is fitted on training rows only, sample partition is determined by target day, histories may cross an earlier partition boundary, and scoring is restricted to assay-observed target days.
+
+## Model architecture
+
+```text
+multi-well inputs
+-> receiving-row dynamic graph encoder
+-> slow branch + fast branch
+-> state fusion
+-> Gaussian output head
+-> predictive mean + predictive log-variance
+```
+
+The slow branch represents delayed concentration memory and cumulative process response. The fast branch represents short-term flow and hydrochemical disturbances.
+
+The Gaussian head represents aggregate predictive uncertainty through learned predictive log-variance; process noise covariance `Q` and observation variance are not separately parameterized. The 90% interval is `mu +/- 1.645 sigma`. Training and probabilistic scoring use the untruncated Gaussian. Optional non-negative lower-bound clipping is restricted to operational visualization.
+
+Soft plausibility regularization comprises non-negativity, rate consistency, and stage-consistent monotonicity. Causal stages are Rising, Peak-transition, Quasi-steady, and Declining. Peak-transition behavior is evaluated through subgroup coverage, residual diagnostics, and rate/stage consistency rather than a standalone scalar timing metric.
+
+## Evaluation
+
+- Deterministic: RMSE, MAE, R², MASE.
+- Probabilistic: interval coverage, mean interval width, NLL, CRPS, Winkler score, sharpness, PIT, and multi-level calibration.
+- Physical consistency: Negative prediction rate, Rate violation, and Stage violation.
+
+Baseline selection is recorded in `configs/manuscript_demo.json`. In particular, TFT uses Validation NLL / RMSE, whereas DeepAR uses Validation NLL / CRPS. The other listed baselines use their specified validation RMSE criteria.
+
+## Reproducibility configuration
+
+The default public configuration uses `L = 28`, `H = 7`, primary seed `43`, and graph weights `alpha = beta = 1.0`. Repeated-seed stability for seeds 41–45 is reported only for PG-SSM, LSTM, TCN, and N-BEATS.
+
+## Manuscript evidence boundary
+
+The repository supports code reproducibility, schema and dimensional checks, workflow verification, and consistency checking of released aggregate evidence.
+
+Independent recomputation of confidential field-derived Tables 2–4, Figs. 5–7, residual diagnostics, and field sensitivity analyses requires authorized access to the protected industrial inputs and frozen field-level result bundle. Public synthetic data are not manuscript field data, and running the demo does not reproduce exact manuscript results.
+
+See [DATA_BOUNDARY.md](DATA_BOUNDARY.md) for the full public/not-public inventory.
+
+## Data availability
+
+The public repository provides source code, configuration, pinned environment specifications, synthetic demonstration data, aggregate manuscript-evidence summaries, documentation, tests, and consistency utilities. Raw hydrogeochemical monitoring records and industrial operational logs remain confidential under the applicable data-use restrictions.
 
 ## License
 
-MIT License. See `LICENSE`.
+MIT License. See [LICENSE](LICENSE).
 
 ## Citation
 
-Please cite the associated Computers & Geosciences manuscript when available.
+Citation information will be updated after publication. No DOI has been assigned in this repository.

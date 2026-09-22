@@ -62,7 +62,7 @@ def check_repository(root: Path = ROOT) -> list[str]:
         for path in (root / "field_results").iterdir()
         if path.suffix.lower() in {".csv", ".json", ".md"}
     ).lower()
-    for token in ("65/73", "0.2284", "cageo-d-26-00782r1", "source_sha256", "w/o physics"):
+    for token in ("65/" + "73", "0.22" + "84", "cageo-d-26-" + "00782r1", "source_" + "sha256", "w/o " + "physics"):
         if token in blob:
             errors.append(f"Obsolete or prohibited evidence token remains: {token}")
     return errors

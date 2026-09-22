@@ -1,1 +1,1 @@
-"""PG-SSM implementation for the CAGEO-D-26-00782R1 companion repository."""
+"""Public PG-SSM synthetic workflow and aggregate-evidence utilities."""
