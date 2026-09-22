@@ -1,85 +1,155 @@
-"""Physically motivated PG-SSM components used in the locked manuscript.
+"""Public PG-SSM architecture for synthetic workflow verification.
 
-The graph is a computational information-aggregation prior. It is not a
-hydraulic-flow solution or reactive-transport simulator. The loss terms are
-soft endpoint-plausibility regularizers, including a rising-stage term.
+The graph is a topology-informed computational affinity prior, not a
+hydraulic model. The latent state is a forecasting representation rather
+than a directly measured hydrogeochemical state.
 """
+from __future__ import annotations
+
 import math
+from typing import Sequence
+
 import torch
 from torch import nn
 
 
-class PGSSM(nn.Module):
-    """Receiving-row graph encoder with dual-timescale latent dynamics."""
+def build_receiving_row_affinity(
+    distances,
+    injection_flow,
+    extraction_flow,
+    alpha: float = 1.0,
+    beta: float = 1.0,
+    distance_scale: float = 1.0,
+) -> torch.Tensor:
+    """Build row-normalized injector-to-extraction affinities A[0,j,t]."""
+    distances = torch.as_tensor(distances, dtype=torch.float32)
+    injection_flow = torch.as_tensor(injection_flow, dtype=torch.float32)
+    extraction_flow = torch.as_tensor(extraction_flow, dtype=torch.float32)
+    if distances.shape != (5,):
+        raise ValueError("distances must contain central node plus four injectors.")
+    if injection_flow.shape[-1] != 4 or extraction_flow.shape != injection_flow.shape[:-1]:
+        raise ValueError("Flow arrays must end in four injectors and one matching extraction value.")
+    if distance_scale <= 0:
+        raise ValueError("distance_scale must be positive.")
 
-    def __init__(self, distances_m, hidden=32, distance_scale_m=120.0,
-                 alpha=0.6, beta=0.25):
+    prior = torch.exp(-distances[1:].square() / (2.0 * float(distance_scale) ** 2))
+    leading = (1,) * (injection_flow.ndim - 1)
+    prior = prior.reshape(*leading, 4).to(injection_flow.device)
+    flow_modulation = (1.0 + float(alpha) * torch.sigmoid(injection_flow)) * (
+        1.0 + float(beta) * torch.sigmoid(extraction_flow).unsqueeze(-1)
+    )
+    incoming = prior * flow_modulation
+    adjacency = torch.zeros(*injection_flow.shape[:-1], 5, 5, dtype=injection_flow.dtype, device=injection_flow.device)
+    diagonal = torch.arange(5, device=injection_flow.device)
+    adjacency[..., diagonal, diagonal] = 1.0
+    adjacency[..., 0, 1:] = incoming
+    return adjacency / adjacency.sum(dim=-1, keepdim=True).clamp_min(1e-8)
+
+
+class PGSSM(nn.Module):
+    """Receiving-row graph encoder with slow/fast latent branches."""
+
+    def __init__(
+        self,
+        distances,
+        input_features: int = 7,
+        hidden: int = 32,
+        distance_scale: float = 1.0,
+        alpha: float = 1.0,
+        beta: float = 1.0,
+    ):
         super().__init__()
-        self.distance_scale_m = float(distance_scale_m)
+        if hidden < 4:
+            raise ValueError("hidden must be at least four.")
+        self.input_features = int(input_features)
+        self.distance_scale = float(distance_scale)
         self.alpha = float(alpha)
         self.beta = float(beta)
-        self.graph_encoder = nn.Sequential(nn.Linear(12, 32), nn.Tanh())
-        self.slow = nn.GRU(32, hidden, batch_first=True)
-        self.operational = nn.GRU(6, hidden // 2, batch_first=True)
-        self.head = nn.Sequential(nn.Linear(hidden + hidden // 2, 32),
-                                  nn.Tanh(), nn.Linear(32, 2))
-        self.register_buffer("distances_m", torch.as_tensor(distances_m,
-                                                             dtype=torch.float32))
+        self.register_buffer("distances", torch.as_tensor(distances, dtype=torch.float32))
+        self.graph_encoder = nn.Sequential(nn.Linear(input_features, hidden), nn.Tanh())
+        self.slow_branch = nn.GRU(hidden, hidden, batch_first=True)
+        self.fast_branch = nn.GRU(5, hidden // 2, batch_first=True)
+        self.fusion = nn.Sequential(
+            nn.Linear(hidden + hidden // 2, hidden),
+            nn.Tanh(),
+        )
+        self.gaussian_head = nn.Linear(hidden, 2)
 
-    def graph_aggregate(self, x):
-        """Aggregate four injector messages at receiving node 0.
-
-        x has shape (batch, history, 5 wells, 6 variables). Variable 1 is the
-        standardized operational-flow proxy. A unit self-loop shares the
-        denominator with all incoming edges so the common extraction-flow term
-        does not cancel algebraically. The resulting weights are a domain-informed
-        information-aggregation prior, not a calibrated hydraulic connection.
-        """
-        center, injectors = x[:, :, 0, :], x[:, :, 1:, :]
-        affinity = torch.exp(-(self.distances_m[1:] ** 2) /
-                             (2 * self.distance_scale_m ** 2))
-        injection = torch.sigmoid(injectors[:, :, :, 1])
-        extraction = torch.sigmoid(center[:, :, 1]).unsqueeze(-1)
-        unnormalized = (affinity.view(1, 1, 4) *
-                        (1 + self.alpha * injection) *
-                        (1 + self.beta * extraction))
-        weights = unnormalized / (1 + unnormalized.sum(-1, keepdim=True) + 1e-6)
-        message = (injectors * weights.unsqueeze(-1)).sum(2)
-        return center, message, weights
-
-    def forward(self, x):
-        center, message, weights = self.graph_aggregate(x)
-        graph_state = self.graph_encoder(torch.cat([center, message], dim=-1))
-        slow_state, _ = self.slow(graph_state)
-        operational_input = torch.cat([center[:, :, :1], center[:, :, 1:3],
-                                       message[:, :, :3]], dim=-1)
-        operational_state, _ = self.operational(operational_input)
-        output = self.head(torch.cat([slow_state[:, -1],
-                                      operational_state[:, -1]], dim=-1))
+    def forward(self, x: torch.Tensor):
+        if x.ndim != 4 or x.shape[2] != 5 or x.shape[3] != self.input_features:
+            raise ValueError("x must have shape (batch, history, 5, input_features).")
+        injection_flow = x[:, :, 1:, 3]
+        extraction_flow = x[:, :, 0, 4]
+        affinity = build_receiving_row_affinity(
+            self.distances,
+            injection_flow,
+            extraction_flow,
+            self.alpha,
+            self.beta,
+            self.distance_scale,
+        )
+        messages = torch.einsum("btij,btjf->btif", affinity, x)
+        receiving_state = self.graph_encoder(messages[:, :, 0, :])
+        slow_state, _ = self.slow_branch(receiving_state)
+        fast_inputs = torch.cat(
+            [x[:, :, 0, 4:7], injection_flow.mean(dim=-1, keepdim=True), extraction_flow.unsqueeze(-1)],
+            dim=-1,
+        )
+        fast_state, _ = self.fast_branch(fast_inputs)
+        fused = self.fusion(torch.cat([slow_state[:, -1], fast_state[:, -1]], dim=-1))
+        output = self.gaussian_head(fused)
         mean = output[:, 0]
-        log_variance = output[:, 1].clamp(-6.0, 3.0)
-        return mean, log_variance, weights
+        log_variance = output[:, 1].clamp(-8.0, 5.0)
+        return mean, log_variance, affinity
 
 
-def audited_loss(mean_z, log_variance, target_z, last_z, slope7_mg_l,
-                 target_mean, target_std, rate_threshold_mg_l_day,
-                 horizon=7, lambda_negative=0.08, lambda_rate=0.05,
-                 lambda_stage=0.03):
-    """Gaussian NLL plus original-scale soft plausibility terms.
+def pgssm_loss(
+    mean_z: torch.Tensor,
+    log_variance: torch.Tensor,
+    target_z: torch.Tensor,
+    last_z: torch.Tensor,
+    stages: Sequence[str],
+    target_mean: float,
+    target_std: float,
+    horizon: int = 7,
+    delta_max: float = 0.80,
+    lambda_nonneg: float = 1.0,
+    lambda_rate: float = 0.10,
+    lambda_stage: float = 0.20,
+):
+    """Untruncated Gaussian NLL plus three soft plausibility penalties."""
+    if len(stages) != len(mean_z):
+        raise ValueError("One causal stage label is required per prediction.")
+    gaussian_nll = 0.5 * (
+        log_variance + (target_z - mean_z).square() / torch.exp(log_variance) + math.log(2.0 * math.pi)
+    ).mean()
+    mean = mean_z * float(target_std) + float(target_mean)
+    last = last_z * float(target_std) + float(target_mean)
+    change = mean - last
+    nonnegative_penalty = torch.relu(-mean).square().mean()
+    rate_penalty = torch.relu(change.abs() / float(horizon) - float(delta_max)).square().mean()
 
-    lambda_stage is the rising-stage plausibility weight. It is not a
-    symmetric three-stage physical law and does not embed transport physics.
-    """
-    nll = 0.5 * (log_variance +
-                 (target_z - mean_z) ** 2 / torch.exp(log_variance) +
-                 math.log(2 * math.pi)).mean()
-    mean = mean_z * target_std + target_mean
-    last = last_z * target_std + target_mean
-    endpoint_change = mean - last
-    negative = torch.relu(-mean).square().mean()
-    rate = torch.relu(endpoint_change.abs() / horizon -
-                      rate_threshold_mg_l_day).square().mean()
-    rising = slope7_mg_l >= 0.10
-    stage = (torch.relu(-endpoint_change[rising]).square().mean()
-             if torch.any(rising) else mean.new_tensor(0.0))
-    return nll + lambda_negative * negative + lambda_rate * rate + lambda_stage * stage
+    stage_terms = []
+    for index, stage in enumerate(stages):
+        if stage == "Rising":
+            stage_terms.append(torch.relu(-change[index]).square())
+        elif stage == "Declining":
+            stage_terms.append(torch.relu(change[index]).square())
+        elif stage in {"Peak-transition", "Quasi-steady"}:
+            stage_terms.append(torch.relu(change[index].abs() / float(horizon) - float(delta_max)).square())
+        else:
+            raise ValueError(f"Unknown stage label: {stage}")
+    stage_penalty = torch.stack(stage_terms).mean() if stage_terms else mean.new_tensor(0.0)
+    total = (
+        gaussian_nll
+        + float(lambda_nonneg) * nonnegative_penalty
+        + float(lambda_rate) * rate_penalty
+        + float(lambda_stage) * stage_penalty
+    )
+    components = {
+        "gaussian_nll": gaussian_nll,
+        "non-negativity": nonnegative_penalty,
+        "rate consistency": rate_penalty,
+        "stage-consistent monotonicity": stage_penalty,
+    }
+    return total, components
