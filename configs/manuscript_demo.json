@@ -1,0 +1,96 @@
+{
+  "name": "PG-SSM manuscript-aligned synthetic demonstration",
+  "data_scope": "synthetic workflow verification only",
+  "history_days": 28,
+  "horizon_days": 7,
+  "primary_seed": 43,
+  "repeated_seed_stability": {
+    "seeds": [41, 42, 43, 44, 45],
+    "models": ["PG-SSM", "LSTM", "TCN", "N-BEATS"]
+  },
+  "split": {
+    "train_fraction": 0.70,
+    "validation_fraction": 0.15,
+    "assignment": "target_date",
+    "normalization": "training_dates_only",
+    "target_scoring": "assay_observed_dates_only"
+  },
+  "graph": {
+    "convention": "receiving_row",
+    "receiving_node": 0,
+    "injector_nodes": [1, 2, 3, 4],
+    "alpha": 1.0,
+    "alpha_candidates": [0.5, 1.0, 1.5],
+    "beta": 1.0,
+    "beta_candidates": [0.5, 1.0, 1.5],
+    "distance_scale_median_multipliers": [0.5, 1.0, 2.0],
+    "unit_self_loop": true,
+    "row_normalization": true,
+    "interpretation": "topology-informed computational affinity prior with computational modulation weights"
+  },
+  "stage": {
+    "labels": ["Rising", "Peak-transition", "Quasi-steady", "Declining"],
+    "eta_y": 0.04,
+    "eta_y_candidates": [0.02, 0.04, 0.06],
+    "tau_Q": 0.60,
+    "tau_Q_candidates": [0.55, 0.60, 0.65],
+    "Delta_max": 0.80,
+    "Delta_max_candidates": [0.60, 0.80, 1.00],
+    "moving_average_days": 7,
+    "ramp_up_persistence_days": 3,
+    "causality": "forecast_origin_and_past_only",
+    "threshold_selection": "validation_only_then_frozen"
+  },
+  "regularization": {
+    "lambda_nonneg": 1.0,
+    "lambda_rate": 0.10,
+    "lambda_rate_candidates": [0.05, 0.10, 0.20],
+    "lambda_stage": 0.20,
+    "lambda_stage_candidates": [0.10, 0.20, 0.30],
+    "terms": ["non-negativity", "rate consistency", "stage-consistent monotonicity"]
+  },
+  "uncertainty": {
+    "distribution": "untruncated Gaussian",
+    "outputs": ["predictive mean", "predictive log-variance"],
+    "pi90_z": 1.645,
+    "display_lower_bound_clipping": "optional_visualization_only"
+  },
+  "optimizer": {
+    "name": "Adam",
+    "learning_rate": 0.002,
+    "weight_decay": 0.0001,
+    "gradient_clip": 2.0,
+    "demo_epochs": 2
+  },
+  "synthetic_generation": {
+    "seed": 20260922,
+    "days": 420,
+    "assay_interval_days": 3,
+    "purpose": ["code execution", "schema checks", "dimensional checks", "causal preprocessing verification", "workflow verification"]
+  },
+  "baseline_selection": {
+    "PG-SSM": "Validation NLL, RMSE tie-break",
+    "TFT": "Validation NLL / RMSE",
+    "DeepAR": "Validation NLL / CRPS",
+    "LSTM": "Validation RMSE",
+    "TCN": "Validation RMSE",
+    "N-BEATS": "Validation RMSE",
+    "MTGNN": "Validation RMSE",
+    "DCRNN": "Validation RMSE",
+    "STGCN": "Validation RMSE",
+    "ARIMAX": "Validation RMSE",
+    "LightGBM": "Validation RMSE",
+    "CRM": "Validation RMSE"
+  },
+  "verified_environment": {
+    "python": "3.9.13",
+    "torch": "2.2.2",
+    "numpy": "1.26.4",
+    "pandas": "2.3.2",
+    "scikit_learn": "1.6.1",
+    "scipy": "1.13.1",
+    "pyarrow": "21.0.0",
+    "matplotlib": "3.8.4",
+    "device": "CPU"
+  }
+}
