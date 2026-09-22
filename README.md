@@ -87,7 +87,9 @@ The slow branch represents delayed concentration memory and cumulative process r
 
 The Gaussian head represents aggregate predictive uncertainty through learned predictive log-variance; process noise covariance `Q` and observation variance are not separately parameterized. The 90% interval is `mu +/- 1.645 sigma`. Training and probabilistic scoring use the untruncated Gaussian. Optional non-negative lower-bound clipping is restricted to operational visualization.
 
-Soft plausibility regularization comprises non-negativity, rate consistency, and ramp-up monotonicity. The trend moving-average window is `M = 7` days and the ramp-up persistence is `k = 3` days; the thresholds are `tau_Q = 0.60`, `tau_s = 0.0`, `eta_y = 0.04`, and `Delta_max = 0.80`. Causal stages are Rising, Peak-transition, Quasi-steady, and Declining. The stage loss is applied to ramp-up samples only. Peak-transition behavior is evaluated through subgroup coverage, residual diagnostics, and rate/stage consistency rather than a standalone scalar timing metric.
+Soft plausibility regularization comprises non-negativity, rate consistency, and ramp-up monotonicity. Non-negativity penalizes negative predictive means; it is not a hard output constraint. The trend moving-average window is `M = 7` days and the ramp-up persistence is `k = 3` days; the thresholds are `tau_Q = 0.60`, `tau_s = 0.0`, `eta_y = 0.04`, and `Delta_max = 0.80`. Causal stages are Rising, Peak-transition, Quasi-steady, and Declining. The stage loss is applied to ramp-up samples only. Peak-transition behavior is evaluated through subgroup coverage, residual diagnostics, and rate/stage consistency rather than a standalone scalar timing metric.
+
+In the manuscript ablation nomenclature, `w/o spatial coupling` removes off-diagonal inter-well message passing while retaining the node encoder, whereas `w/o Graph` removes the graph encoder entirely.
 
 ## Evaluation
 
