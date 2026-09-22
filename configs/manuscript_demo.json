@@ -34,6 +34,8 @@
     "eta_y_candidates": [0.02, 0.04, 0.06],
     "tau_Q": 0.60,
     "tau_Q_candidates": [0.55, 0.60, 0.65],
+    "tau_s": 0.0,
+    "tau_s_candidates": [-0.01, 0.0, 0.01],
     "Delta_max": 0.80,
     "Delta_max_candidates": [0.60, 0.80, 1.00],
     "moving_average_days": 7,
@@ -55,9 +57,14 @@
     "pi90_z": 1.645,
     "display_lower_bound_clipping": "optional_visualization_only"
   },
+  "model": {
+    "hidden_size": 64,
+    "dropout": 0.10,
+    "latent_fusion": "addition"
+  },
   "optimizer": {
     "name": "Adam",
-    "learning_rate": 0.002,
+    "learning_rate": 0.001,
     "weight_decay": 0.0001,
     "gradient_clip": 2.0,
     "demo_epochs": 2

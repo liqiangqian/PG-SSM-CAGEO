@@ -11,12 +11,13 @@ class StageCausalityTests(unittest.TestCase):
         self.thresholds = StageThresholds(
             eta_y=0.04,
             tau_Q=0.60,
+            tau_s=0.0,
             delta_max=0.80,
-            moving_average_days=7,
+            moving_average_days=3,
             ramp_up_persistence_days=3,
         )
-        self.injection = np.full(9, 4.0)
-        self.extraction = np.full(9, 5.0)
+        self.injection = np.full(9, 0.8)
+        self.extraction = np.full(9, 0.7)
 
     def test_future_values_cannot_change_origin_stage(self):
         prefix = np.array([1.00, 1.02, 1.06, 1.11, 1.17, 1.22, 1.21])
@@ -25,7 +26,7 @@ class StageCausalityTests(unittest.TestCase):
         origin = len(prefix) - 1
         first = assign_stage(future_a[: origin + 1], self.injection[: origin + 1], self.extraction[: origin + 1], self.thresholds)
         second = assign_stage(future_b[: origin + 1], self.injection[: origin + 1], self.extraction[: origin + 1], self.thresholds)
-        self.assertEqual(first, "Peak-transition")
+        self.assertEqual(first, "Rising")
         self.assertEqual(first, second)
 
     def test_future_local_maximum_is_not_searched(self):

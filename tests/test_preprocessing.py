@@ -81,6 +81,15 @@ class PreprocessingTests(unittest.TestCase):
         second = fit_train_normalizer(changed, train_end_day=23)
         self.assertEqual(first, second)
 
+    def test_flow_features_use_training_min_max_scaling(self):
+        sets = build_endpoint_samples(self.frame, self.config)
+        train = sets["train"]
+        for name in ("injection_flow", "extraction_flow"):
+            index = train.feature_names.index(name)
+            values = train.x[..., index]
+            self.assertGreaterEqual(float(values.min()), 0.0)
+            self.assertLessEqual(float(values.max()), 1.0)
+
     def test_sample_shapes_retain_mask_and_days_since_assay(self):
         sets = build_endpoint_samples(self.frame, self.config)
         train = sets["train"]

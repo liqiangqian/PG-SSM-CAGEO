@@ -23,6 +23,15 @@ class ModelSmokeTests(unittest.TestCase):
         self.assertGreater(adjacency[0, 0, 1].item(), adjacency[0, 0, 4].item())
         self.assertEqual(adjacency[0, 1, 0].item(), 0.0)
 
+    def test_flow_modulation_uses_normalized_flow_directly(self):
+        zero = build_receiving_row_affinity(
+            self.distances, torch.zeros(1, 4), torch.zeros(1), distance_scale=2.0
+        )
+        high = build_receiving_row_affinity(
+            self.distances, torch.ones(1, 4), torch.ones(1), distance_scale=2.0
+        )
+        self.assertGreater(high[0, 0, 1].item(), zero[0, 0, 1].item())
+
     def test_forward_returns_finite_gaussian_parameters(self):
         mean, log_variance, affinity = self.model(self.x)
         self.assertEqual(mean.shape, (3,))
@@ -67,6 +76,16 @@ class ModelSmokeTests(unittest.TestCase):
             {"gaussian_nll", "non-negativity", "rate consistency", "stage-consistent monotonicity"},
         )
         self.assertTrue(torch.isfinite(total))
+        rising_only, _ = pgssm_loss(
+            mean,
+            log_variance,
+            target,
+            last,
+            ["Rising", "Peak-transition", "Quasi-steady"],
+            target_mean=1.0,
+            target_std=0.5,
+        )
+        self.assertTrue(torch.isfinite(rising_only))
         total.backward()
         self.assertIsNotNone(mean.grad)
 

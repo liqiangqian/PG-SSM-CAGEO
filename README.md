@@ -70,6 +70,8 @@ The synthetic data are intended for code execution, schema checks, dimensional c
 
 The public pipeline retains an assay-observation mask and days-since-assay feature. Historical assay inputs use causal last-observation-carried-forward only: no backward filling, future-target interpolation, or future assay is permitted. Normalization is fitted on training rows only, sample partition is determined by target day, histories may cross an earlier partition boundary, and scoring is restricted to assay-observed target days.
 
+Flow variables use training-only min-max scaling and enter the multiplicative graph modulation directly. Other model features use training-only z-score scaling. The synthetic reference configuration follows the manuscript-selected architecture settings: hidden size 64, dropout 0.10, additive slow/fast fusion, and Adam learning rate `1e-3`.
+
 ## Model architecture
 
 ```text
@@ -85,7 +87,7 @@ The slow branch represents delayed concentration memory and cumulative process r
 
 The Gaussian head represents aggregate predictive uncertainty through learned predictive log-variance; process noise covariance `Q` and observation variance are not separately parameterized. The 90% interval is `mu +/- 1.645 sigma`. Training and probabilistic scoring use the untruncated Gaussian. Optional non-negative lower-bound clipping is restricted to operational visualization.
 
-Soft plausibility regularization comprises non-negativity, rate consistency, and stage-consistent monotonicity. Causal stages are Rising, Peak-transition, Quasi-steady, and Declining. Peak-transition behavior is evaluated through subgroup coverage, residual diagnostics, and rate/stage consistency rather than a standalone scalar timing metric.
+Soft plausibility regularization comprises non-negativity, rate consistency, and ramp-up monotonicity. The trend moving-average window is `M = 7` days and the ramp-up persistence is `k = 3` days; the thresholds are `tau_Q = 0.60`, `tau_s = 0.0`, `eta_y = 0.04`, and `Delta_max = 0.80`. Causal stages are Rising, Peak-transition, Quasi-steady, and Declining. The stage loss is applied to ramp-up samples only. Peak-transition behavior is evaluated through subgroup coverage, residual diagnostics, and rate/stage consistency rather than a standalone scalar timing metric.
 
 ## Evaluation
 
@@ -98,6 +100,8 @@ Baseline selection is recorded in `configs/manuscript_demo.json`. In particular,
 ## Reproducibility configuration
 
 The default public configuration uses `L = 28`, `H = 7`, primary seed `43`, and graph weights `alpha = beta = 1.0`. Repeated-seed stability for seeds 41–45 is reported only for PG-SSM, LSTM, TCN, and N-BEATS.
+
+Gaussian NLL uses the complete untruncated Gaussian expression, including `log(2*pi)`. MASE uses the training-period 7-day naive scaling denominator.
 
 ## Manuscript evidence boundary
 

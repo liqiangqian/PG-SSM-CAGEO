@@ -35,8 +35,8 @@ def build_receiving_row_affinity(
     prior = torch.exp(-distances[1:].square() / (2.0 * float(distance_scale) ** 2))
     leading = (1,) * (injection_flow.ndim - 1)
     prior = prior.reshape(*leading, 4).to(injection_flow.device)
-    flow_modulation = (1.0 + float(alpha) * torch.sigmoid(injection_flow)) * (
-        1.0 + float(beta) * torch.sigmoid(extraction_flow).unsqueeze(-1)
+    flow_modulation = (1.0 + float(alpha) * injection_flow) * (
+        1.0 + float(beta) * extraction_flow.unsqueeze(-1)
     )
     incoming = prior * flow_modulation
     adjacency = torch.zeros(*injection_flow.shape[:-1], 5, 5, dtype=injection_flow.dtype, device=injection_flow.device)
@@ -53,7 +53,8 @@ class PGSSM(nn.Module):
         self,
         distances,
         input_features: int = 7,
-        hidden: int = 32,
+        hidden: int = 64,
+        dropout: float = 0.10,
         distance_scale: float = 1.0,
         alpha: float = 1.0,
         beta: float = 1.0,
@@ -68,11 +69,8 @@ class PGSSM(nn.Module):
         self.register_buffer("distances", torch.as_tensor(distances, dtype=torch.float32))
         self.graph_encoder = nn.Sequential(nn.Linear(input_features, hidden), nn.Tanh())
         self.slow_branch = nn.GRU(hidden, hidden, batch_first=True)
-        self.fast_branch = nn.GRU(5, hidden // 2, batch_first=True)
-        self.fusion = nn.Sequential(
-            nn.Linear(hidden + hidden // 2, hidden),
-            nn.Tanh(),
-        )
+        self.fast_branch = nn.GRU(5, hidden, batch_first=True)
+        self.dropout = nn.Dropout(float(dropout))
         self.gaussian_head = nn.Linear(hidden, 2)
 
     def forward(self, x: torch.Tensor):
@@ -96,7 +94,7 @@ class PGSSM(nn.Module):
             dim=-1,
         )
         fast_state, _ = self.fast_branch(fast_inputs)
-        fused = self.fusion(torch.cat([slow_state[:, -1], fast_state[:, -1]], dim=-1))
+        fused = self.dropout(slow_state[:, -1]) + self.dropout(fast_state[:, -1])
         output = self.gaussian_head(fused)
         mean = output[:, 0]
         log_variance = output[:, 1].clamp(-8.0, 5.0)
@@ -133,11 +131,7 @@ def pgssm_loss(
     for index, stage in enumerate(stages):
         if stage == "Rising":
             stage_terms.append(torch.relu(-change[index]).square())
-        elif stage == "Declining":
-            stage_terms.append(torch.relu(change[index]).square())
-        elif stage in {"Peak-transition", "Quasi-steady"}:
-            stage_terms.append(torch.relu(change[index].abs() / float(horizon) - float(delta_max)).square())
-        else:
+        elif stage not in {"Declining", "Peak-transition", "Quasi-steady"}:
             raise ValueError(f"Unknown stage label: {stage}")
     stage_penalty = torch.stack(stage_terms).mean() if stage_terms else mean.new_tensor(0.0)
     total = (

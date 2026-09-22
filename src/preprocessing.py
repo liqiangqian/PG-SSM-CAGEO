@@ -106,7 +106,13 @@ def causal_assay_features(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def fit_train_normalizer(frame: pd.DataFrame, train_end_day: int) -> Normalizer:
-    """Fit feature and target statistics using training-date rows only."""
+    """Fit training-only transforms.
+
+    Flow variables use the manuscript's min-max transform. All other model
+    features use the reported z-score transform. The stored ``means`` and
+    ``stds`` fields therefore contain the offset and scale for the applicable
+    transform (minimum/range for flows; mean/standard deviation otherwise).
+    """
     train = frame.loc[frame["day"] <= int(train_end_day)]
     if train.empty:
         raise ValueError("Training partition is empty.")
@@ -114,10 +120,14 @@ def fit_train_normalizer(frame: pd.DataFrame, train_end_day: int) -> Normalizer:
     stds = []
     for name in FEATURE_NAMES:
         values = train[name].astype(float).to_numpy()
-        mean = float(np.nanmean(values))
-        std = float(np.nanstd(values))
-        means.append(mean)
-        stds.append(std if np.isfinite(std) and std >= 1e-8 else 1.0)
+        if name in {"injection_flow", "extraction_flow"}:
+            offset = float(np.nanmin(values))
+            scale = float(np.nanmax(values) - offset)
+        else:
+            offset = float(np.nanmean(values))
+            scale = float(np.nanstd(values))
+        means.append(offset)
+        stds.append(scale if np.isfinite(scale) and scale >= 1e-8 else 1.0)
     targets = train.loc[
         (train["well_role"] == "central_extraction") & (train["assay_observed"] == 1),
         "uranium_assay",

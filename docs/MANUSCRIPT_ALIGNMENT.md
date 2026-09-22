@@ -10,9 +10,10 @@
 | Target-day partitioning | `src/preprocessing.py` |
 | Training-only normalization | `src/preprocessing.py` |
 | Receiving-row dynamic graph | `src/pgssm_model.py` |
+| Training-only min-max flow scaling and z-score scaling for other features | `src/preprocessing.py` |
 | `alpha = beta = 1.0` and candidate grids | `configs/manuscript_demo.json` |
-| Slow/fast branches and Gaussian head | `src/pgssm_model.py` |
-| Soft plausibility regularization | `src/pgssm_model.py` |
+| Hidden size 64, dropout 0.10, additive slow/fast fusion, and Gaussian head | `configs/manuscript_demo.json` and `src/pgssm_model.py` |
+| Ramp-up-only stage regularization and complete Gaussian NLL | `src/pgssm_model.py` |
 | Four causal stages | `src/stages.py` and `tests/test_stage_causality.py` |
 | Untruncated Gaussian scoring | `src/evaluation.py` and `tests/test_gaussian_scoring.py` |
 | Deterministic/probabilistic/consistency metrics | `src/evaluation.py` |

@@ -11,6 +11,7 @@ import numpy as np
 class StageThresholds:
     eta_y: float = 0.04
     tau_Q: float = 0.60
+    tau_s: float = 0.0
     delta_max: float = 0.80
     moving_average_days: int = 7
     ramp_up_persistence_days: int = 3
@@ -33,11 +34,12 @@ def fit_stage_thresholds(validation_history: Mapping[str, np.ndarray], candidate
         raise ValueError("Validation arrays must be finite.")
     absolute_changes = np.abs(np.diff(concentration))
     representative_trend = float(np.median(absolute_changes))
-    flow_ratio = float(np.mean(injection / np.maximum(extraction, 1e-8)))
+    injection_intensity = float(np.mean(injection))
     large_change = float(np.quantile(absolute_changes, 0.95))
     return StageThresholds(
         eta_y=_nearest_candidate(representative_trend, candidates["eta_y"]),
-        tau_Q=_nearest_candidate(flow_ratio, candidates["tau_Q"]),
+        tau_Q=_nearest_candidate(injection_intensity, candidates["tau_Q"]),
+        tau_s=_nearest_candidate(0.0, candidates.get("tau_s", [0.0])),
         delta_max=_nearest_candidate(large_change, candidates["Delta_max"]),
     )
 
@@ -54,18 +56,23 @@ def assign_stage(concentration_history, injection_flow_history, extraction_flow_
     if not (np.isfinite(concentration).all() and np.isfinite(injection).all() and np.isfinite(extraction).all()):
         raise ValueError("Stage inputs must be finite.")
 
-    window = concentration[-thresholds.moving_average_days :]
-    differences = np.diff(window)
-    trend = float((window[-1] - window[0]) / max(len(window) - 1, 1))
+    kernel = np.ones(thresholds.moving_average_days, dtype=float) / float(thresholds.moving_average_days)
+    smoothed = np.convolve(concentration, kernel, mode="valid")
+    differences = np.diff(smoothed)
+    if not differences.size:
+        raise ValueError("Concentration history does not support a smoothed trend.")
     persistence = min(thresholds.ramp_up_persistence_days, len(differences))
     recent = differences[-persistence:]
-    flow_ratio = float(np.mean(injection[-thresholds.moving_average_days :] / np.maximum(extraction[-thresholds.moving_average_days :], 1e-8)))
+    trend = float(np.mean(recent))
+    injection_intensity = float(np.mean(injection[-persistence:]))
 
-    if trend >= thresholds.eta_y and np.all(recent > 0):
+    if injection_intensity >= thresholds.tau_Q and np.all(recent >= thresholds.tau_s):
         return "Rising"
     prior_recent = differences[-persistence:-1] if persistence > 1 else differences[-1:]
     if prior_recent.size and float(np.mean(prior_recent)) >= thresholds.eta_y / 2.0 and differences[-1] <= 0:
         return "Peak-transition"
-    if abs(trend) < thresholds.eta_y and abs(float(differences[-1])) <= thresholds.delta_max and flow_ratio >= thresholds.tau_Q:
+    if trend <= -thresholds.eta_y:
+        return "Declining"
+    if abs(trend) < thresholds.eta_y:
         return "Quasi-steady"
-    return "Declining"
+    return "Quasi-steady"

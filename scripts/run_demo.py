@@ -37,6 +37,7 @@ def _stages(sample_set, config):
     thresholds = StageThresholds(
         eta_y=float(config["stage"]["eta_y"]),
         tau_Q=float(config["stage"]["tau_Q"]),
+        tau_s=float(config["stage"]["tau_s"]),
         delta_max=float(config["stage"]["Delta_max"]),
         moving_average_days=int(config["stage"]["moving_average_days"]),
         ramp_up_persistence_days=int(config["stage"]["ramp_up_persistence_days"]),
@@ -44,11 +45,9 @@ def _stages(sample_set, config):
     labels = []
     for sample in sample_set.x:
         uranium = sample[:, 0, index["uranium_locf"]] * stds[index["uranium_locf"]] + means[index["uranium_locf"]]
-        injection_standardized = sample[:, 1:, index["injection_flow"]]
-        injection = injection_standardized * stds[index["injection_flow"]] + means[index["injection_flow"]]
-        extraction_standardized = sample[:, 0, index["extraction_flow"]]
-        extraction = extraction_standardized * stds[index["extraction_flow"]] + means[index["extraction_flow"]]
-        labels.append(assign_stage(uranium, injection.sum(axis=1), extraction, thresholds))
+        injection_normalized = sample[:, 1:, index["injection_flow"]]
+        extraction_normalized = sample[:, 0, index["extraction_flow"]]
+        labels.append(assign_stage(uranium, injection_normalized.mean(axis=1), extraction_normalized, thresholds))
     return labels
 
 
@@ -71,7 +70,8 @@ def run_demo(config_path: Path, epochs: int, output_path: Path) -> dict:
     model = PGSSM(
         distances,
         input_features=len(train.feature_names),
-        hidden=16,
+        hidden=int(config["model"]["hidden_size"]),
+        dropout=float(config["model"]["dropout"]),
         distance_scale=1.0,
         alpha=float(config["graph"]["alpha"]),
         beta=float(config["graph"]["beta"]),
@@ -118,11 +118,14 @@ def run_demo(config_path: Path, epochs: int, output_path: Path) -> dict:
     log_variance = log_variance_z.numpy() + 2.0 * np.log(normalizer.target_std)
     central_training = frame.loc[
         (frame["well_role"] == "central_extraction")
-        & frame["uranium_assay"].notna()
         & (frame["day"] <= int(len(frame["day"].unique()) * config["split"]["train_fraction"]) - 1),
-        "uranium_assay",
-    ].to_numpy()
-    mase_denominator = float(np.mean(np.abs(np.diff(central_training))))
+        ["day", "uranium_assay"],
+    ].sort_values("day")
+    training_daily = central_training["uranium_assay"].ffill().dropna()
+    seven_day_errors = training_daily.diff(int(config["horizon_days"])).dropna().abs()
+    if seven_day_errors.empty:
+        raise ValueError("Training data do not support the 7-day naive MASE denominator.")
+    mase_denominator = float(seven_day_errors.mean())
     stages = _stages(test, config)
     metrics = deterministic_metrics(observed, predicted, mase_denominator)
     probabilistic = gaussian_metrics(observed, predicted, log_variance)
