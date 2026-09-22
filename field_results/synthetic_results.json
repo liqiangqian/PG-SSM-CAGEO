@@ -1,12 +1,36 @@
 {
+  "device": "CPU",
+  "history_days": 28,
+  "horizon_days": 7,
+  "mean_receiving_affinity": 0.219586580991745,
+  "parameter_count": 2554,
+  "recomputes_field_metrics": false,
+  "scored_test_targets": 19,
+  "seed": 43,
+  "selection_partition": "validation_only",
+  "synthetic_consistency_metrics": {
+    "Negative prediction rate": 0.0,
+    "Rate violation": 0.0,
+    "Stage violation": 0.05263157894736842
+  },
+  "synthetic_deterministic_metrics": {
+    "mae": 0.43186938762664795,
+    "mase": 7.640088765525137,
+    "r2": -11.352907016009596,
+    "rmse": 0.4496601092932433
+  },
   "synthetic_only": true,
-  "purpose": "execution_schema_dimensional_check",
-  "not_field_performance": true,
-  "train_windows": 120,
-  "validation_windows": 33,
-  "test_windows": 33,
-  "rmse_mg_l": 0.10862091928720474,
-  "mase": 3.2049125849651303,
-  "mean_incoming_weight": 0.18780629336833954,
-  "parameter_count": 9538
+  "synthetic_probabilistic_metrics": {
+    "coverage": 0.7368421052631579,
+    "crps": 0.2857756013025529,
+    "mean_interval_width": 1.056199155172812,
+    "nll": 0.7608005452764419,
+    "pit_mean": 0.10564514948795845,
+    "sharpness": 0.32106174612337496,
+    "winkler": 1.2847451808780308
+  },
+  "train_targets": 81,
+  "validation_nll": 1.3659579753875732,
+  "validation_targets": 20,
+  "workflow_verification_only": true
 }
