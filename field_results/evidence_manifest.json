@@ -1,0 +1,32 @@
+{
+  "title": "A Physically Motivated Probabilistic Graph State-Space Framework for Short-Term Uranium Concentration Forecasting in Five-Spot In-Situ Leaching Wellfield Units",
+  "framework": "PG-SSM",
+  "evidence_level": "aggregate manuscript transcription",
+  "public_recomputation_of_field_results": false,
+  "primary_test_n": 38,
+  "history_days": 28,
+  "horizon_days": 7,
+  "primary_seed": 43,
+  "pi90_count": "34/38",
+  "source_documents": [
+    "Manuscript_revision.docx",
+    "Supplementary_Information.docx",
+    "Response_to_Reviewers.docx"
+  ],
+  "aggregate_files": [
+    "manuscript_table2_deterministic.csv",
+    "manuscript_table3_probabilistic.csv",
+    "manuscript_table4_ablation.csv",
+    "manuscript_calibration.csv",
+    "manuscript_stage_coverage.csv",
+    "manuscript_sensitivity.csv",
+    "manuscript_seed_stability.csv"
+  ],
+  "exclusions": [
+    "raw industrial records",
+    "actual identifiers",
+    "actual coordinates",
+    "row-level observations or predictions",
+    "protected frozen field-result bundle"
+  ]
+}

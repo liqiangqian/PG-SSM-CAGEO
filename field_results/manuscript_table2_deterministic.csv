@@ -1,0 +1,18 @@
+Model,Model_family,RMSE,MAE,R2,MASE,n,evidence_level
+PG-SSM,Proposed,0.455,0.357,0.933,0.867,38,aggregate manuscript transcription
+Kalman filter,Classical state-space,0.504,0.404,0.918,0.983,38,aggregate manuscript transcription
+EKF,Classical state-space,0.480,0.377,0.926,0.916,38,aggregate manuscript transcription
+UKF,Classical state-space,0.514,0.396,0.915,0.962,38,aggregate manuscript transcription
+7-day persistence,Naive baseline,0.536,0.411,0.908,1.000,38,aggregate manuscript transcription
+ARIMAX,Statistical + exogenous,0.521,0.402,0.913,0.976,38,aggregate manuscript transcription
+LightGBM,Tree-based regression,0.492,0.386,0.922,0.938,38,aggregate manuscript transcription
+CRM / transfer function,Flow-response baseline,0.533,0.415,0.909,1.009,38,aggregate manuscript transcription
+LSTM,Temporal neural network,0.634,0.499,0.871,1.214,38,aggregate manuscript transcription
+TCN,Temporal neural network,0.546,0.425,0.904,1.032,38,aggregate manuscript transcription
+TFT,Probabilistic temporal,0.508,0.395,0.917,0.961,38,aggregate manuscript transcription
+DeepAR,Probabilistic forecaster,0.610,0.476,0.881,1.158,38,aggregate manuscript transcription
+N-BEATS,Temporal neural network,0.496,0.389,0.921,0.945,38,aggregate manuscript transcription
+MTGNN,Graph forecasting,0.552,0.435,0.902,1.057,38,aggregate manuscript transcription
+DCRNN,Graph forecasting,0.598,0.475,0.885,1.153,38,aggregate manuscript transcription
+STGCN,Graph forecasting,0.627,0.498,0.874,1.210,38,aggregate manuscript transcription
+Engineering-informed lag,Lagged operational model,0.581,0.457,0.891,1.110,38,aggregate manuscript transcription

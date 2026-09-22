@@ -1,0 +1,5 @@
+Model,PI90_count,coverage_percent,Mean_width,NLL,CRPS,Winkler_score,Sharpness_mean_sigma,n,evidence_level
+PG-SSM,34/38,89.5,1.513,0.597,0.255,1.649,0.460,38,aggregate manuscript transcription
+DeepAR,33/38,86.8,1.885,0.942,0.334,2.584,0.573,38,aggregate manuscript transcription
+TFT,33/38,86.8,1.745,0.821,0.299,2.341,0.530,38,aggregate manuscript transcription
+Engineering-informed probabilistic baseline,32/38,84.2,2.086,1.125,0.382,2.964,0.634,38,aggregate manuscript transcription

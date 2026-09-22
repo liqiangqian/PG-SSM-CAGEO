@@ -1,0 +1,22 @@
+Parameter,Setting,RMSE,evidence_level
+alpha,0.5,0.468,aggregate manuscript transcription
+alpha,1.0,0.455,aggregate manuscript transcription
+alpha,1.5,0.462,aggregate manuscript transcription
+beta,0.5,0.461,aggregate manuscript transcription
+beta,1.0,0.455,aggregate manuscript transcription
+beta,1.5,0.458,aggregate manuscript transcription
+sigma_d_median_multiplier,0.5,0.482,aggregate manuscript transcription
+sigma_d_median_multiplier,1.0,0.455,aggregate manuscript transcription
+sigma_d_median_multiplier,2.0,0.470,aggregate manuscript transcription
+lambda_rate,0.05,0.463,aggregate manuscript transcription
+lambda_rate,0.10,0.455,aggregate manuscript transcription
+lambda_rate,0.20,0.466,aggregate manuscript transcription
+lambda_stage,0.10,0.462,aggregate manuscript transcription
+lambda_stage,0.20,0.455,aggregate manuscript transcription
+lambda_stage,0.30,0.469,aggregate manuscript transcription
+tau_Q,0.55,0.460,aggregate manuscript transcription
+tau_Q,0.60,0.455,aggregate manuscript transcription
+tau_Q,0.65,0.464,aggregate manuscript transcription
+Delta_max,0.60,0.471,aggregate manuscript transcription
+Delta_max,0.80,0.455,aggregate manuscript transcription
+Delta_max,1.00,0.461,aggregate manuscript transcription

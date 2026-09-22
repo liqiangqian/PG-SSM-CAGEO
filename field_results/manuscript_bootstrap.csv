@@ -1,3 +1,0 @@
-contrast,estimator,estimate,ci95_low,ci95_high,block_length_days,resamples,interpretation,evidence_class
-Persistence-minus-PG-SSM,paired_mean_squared_error,0.0157,0.0018,0.0305,7,5000,Paired mean squared-error contrast; positive values favour PG-SSM,aggregate_manuscript_result
-Persistence-minus-PG-SSM,paired_mean_absolute_error,0.0248,0.0056,0.0431,7,5000,Positive values favour PG-SSM,aggregate_manuscript_result

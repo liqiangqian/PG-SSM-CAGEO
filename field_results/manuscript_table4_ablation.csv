@@ -1,0 +1,8 @@
+Model,RMSE,MAE,R2,PI90_coverage,Negative_prediction_rate,Rate_violation,Stage_violation,evidence_level
+PG-SSM,0.455,0.357,0.933,34/38 (89.5%),0/38 (0.0%),1/38 (2.6%),0/38 (0.0%),aggregate manuscript transcription
+w/o spatial coupling,0.645,0.509,0.866,32/38 (84.2%),1/38 (2.6%),3/38 (7.9%),1/38 (2.6%),aggregate manuscript transcription
+w/o Graph,0.572,0.449,0.895,33/38 (86.8%),0/38 (0.0%),2/38 (5.3%),1/38 (2.6%),aggregate manuscript transcription
+w/o soft regularization,0.535,0.420,0.908,33/38 (86.8%),1/38 (2.6%),3/38 (7.9%),1/38 (2.6%),aggregate manuscript transcription
+w/o Dual-branch,0.510,0.392,0.917,34/38 (89.5%),0/38 (0.0%),2/38 (5.3%),0/38 (0.0%),aggregate manuscript transcription
+w/o Graph + soft regularization,0.669,0.524,0.856,31/38 (81.6%),1/38 (2.6%),4/38 (10.5%),2/38 (5.3%),aggregate manuscript transcription
+w/o Graph + Dual-branch,0.643,0.508,0.867,32/38 (84.2%),1/38 (2.6%),3/38 (7.9%),1/38 (2.6%),aggregate manuscript transcription

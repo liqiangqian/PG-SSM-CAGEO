@@ -1,5 +1,13 @@
-nominal,hits,n,coverage,coverage_percent,wilson_ci95_low_percent,wilson_ci95_high_percent,evidence_class
-0.50,38,73,0.521,52.1,40.8,63.1,aggregate_manuscript_result
-0.80,58,73,0.795,79.5,68.8,87.1,aggregate_manuscript_result
-0.90,65,73,0.890,89.0,79.8,94.3,aggregate_manuscript_result
-0.95,70,73,0.959,95.9,88.6,98.6,aggregate_manuscript_result
+Diagnostic,Nominal,Empirical_count,Empirical_percent,n,evidence_level
+Predictive quantile,0.05,3/38,7.9,38,aggregate manuscript transcription
+Predictive quantile,0.10,5/38,13.2,38,aggregate manuscript transcription
+Predictive quantile,0.25,9/38,23.7,38,aggregate manuscript transcription
+Predictive quantile,0.50,19/38,50.0,38,aggregate manuscript transcription
+Predictive quantile,0.75,28/38,73.7,38,aggregate manuscript transcription
+Predictive quantile,0.90,34/38,89.5,38,aggregate manuscript transcription
+Predictive quantile,0.95,37/38,97.4,38,aggregate manuscript transcription
+Central interval,50%,19/38,50.0,38,aggregate manuscript transcription
+Central interval,70%,24/38,63.2,38,aggregate manuscript transcription
+Central interval,80%,29/38,76.3,38,aggregate manuscript transcription
+Central interval,90%,34/38,89.5,38,aggregate manuscript transcription
+Central interval,95%,38/38,100.0,38,aggregate manuscript transcription
