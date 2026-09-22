@@ -54,8 +54,8 @@ def scan_repository(root: Path = ROOT) -> list[Finding]:
         relative = path.relative_to(root).as_posix()
         lower_name = path.name.lower()
         suffix = path.suffix.lower()
-        if suffix in SENSITIVE_EXTENSIONS:
-            findings.append(Finding(relative, "sensitive extension", suffix))
+        if suffix in SENSITIVE_EXTENSIONS or lower_name == ".env" or lower_name.startswith(".env."):
+            findings.append(Finding(relative, "sensitive extension", suffix or lower_name))
         if re.search(r"(?:raw|private|protected)[_-]?(?:field|site|well|data|bundle)|row[_-]?predictions", lower_name):
             findings.append(Finding(relative, "protected-style filename", lower_name))
 
@@ -70,7 +70,7 @@ def scan_repository(root: Path = ROOT) -> list[Finding]:
             if value not in PLACEHOLDER_VALUES and not value.startswith("example"):
                 findings.append(Finding(relative, "credential pattern", "non-placeholder assignment"))
                 break
-        if re.search(r"(?i)(?:[a-z]:\\(?:users|documents and settings)\\|/(?:users|home)/[^/\s]+/)", text):
+        if re.search(r"(?i)(?:[a-z]:\\|/(?:users|home)/[^/\s]+/)", text):
             findings.append(Finding(relative, "absolute local path", "user-directory path"))
         if re.search(r"(?i)\b(?:postgres|mysql|mongodb(?:\+srv)?)://[^\s]+", text):
             findings.append(Finding(relative, "database connection string", "database URL"))

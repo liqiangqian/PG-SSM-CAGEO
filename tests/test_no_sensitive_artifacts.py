@@ -24,6 +24,15 @@ class SensitiveArtifactTests(unittest.TestCase):
             (root / "guide.md").write_text("pass" + "word=example-value\nAPI_KEY=dummy\n", encoding="utf-8")
             self.assertEqual(scan_repository(root), [])
 
+    def test_scanner_rejects_dotenv_and_windows_absolute_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".env").write_text("PUBLIC_SETTING=1\n", encoding="utf-8")
+            (root / "config.md").write_text("input=D:" + "\\restricted\\records.csv\n", encoding="utf-8")
+            findings = scan_repository(root)
+            self.assertTrue(any(item.path == ".env" and item.category == "sensitive extension" for item in findings))
+            self.assertTrue(any(item.path == "config.md" and item.category == "absolute local path" for item in findings))
+
     def test_active_public_tree_has_no_sensitive_or_legacy_findings(self):
         self.assertEqual(scan_repository(ROOT), [])
         self.assertFalse((ROOT / "field_analysis").exists())
